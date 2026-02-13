@@ -537,7 +537,7 @@ docker build .      →    podman build .
 {: .labeled}
 | 用語 | 説明 |
 | -------------------------------- | ----------------------------------------------------------------------------------------- |
-| OCI（Open Container Initiative） | コンテナの標準仕様を策定する組織。2015 年に設立 |
+| OCI（Open Container Initiative） | コンテナの標準仕様を策定する組織<br>2015 年に設立 |
 | OCI Runtime Specification | コンテナの実行方法（ライフサイクル、config.json）を定義する仕様 |
 | OCI Image Specification | コンテナイメージの構造（レイヤ、メタデータ）を定義する仕様 |
 | OCI Distribution Specification | コンテナイメージの配布方法（レジストリとの通信）を定義する仕様 |
@@ -545,12 +545,12 @@ docker build .      →    podman build .
 | コンテナランタイム | コンテナのライフサイクルを管理するソフトウェアの総称 |
 | 低レベルランタイム | namespace と cgroup を直接操作してコンテナを作成・実行するランタイム（runc 等） |
 | 高レベルランタイム | イメージ管理やコンテナ管理を含む、より広い機能を持つランタイム（containerd 等） |
-| runc | OCI 準拠の低レベルコンテナランタイム。Docker から独立したプロジェクト |
-| containerd | コンテナのライフサイクル全体を管理する高レベルランタイム。Docker から独立したプロジェクト |
-| Docker CLI | Docker のコマンドラインツール。REST API で Docker Engine と通信する |
-| Docker Engine（dockerd） | Docker のメインデーモン。コンテナ、イメージ、ネットワーク、ボリュームを管理する |
+| runc | OCI 準拠の低レベルコンテナランタイム<br>Docker から独立したプロジェクト |
+| containerd | コンテナのライフサイクル全体を管理する高レベルランタイム<br>Docker から独立したプロジェクト |
+| Docker CLI | Docker のコマンドラインツール<br>REST API で Docker Engine と通信する |
+| Docker Engine（dockerd） | Docker のメインデーモン<br>コンテナ、イメージ、ネットワーク、ボリュームを管理する |
 | Podman | Docker 互換のデーモンレスコンテナランタイム |
-| conmon | Podman が使用するコンテナモニター。コンテナプロセスの監視とログ収集を行う |
+| conmon | Podman が使用するコンテナモニター<br>コンテナプロセスの監視とログ収集を行う |
 | デーモン | バックグラウンドで常時動作するプロセス |
 | デーモンレス | デーモンを必要としないアーキテクチャ |
 | gRPC | Google が開発した高性能な RPC（Remote Procedure Call）フレームワーク |

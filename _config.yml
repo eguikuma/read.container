@@ -1,0 +1,11 @@
+title: read.container
+description: 「コンテナはどう動き、どう使うか」を学びます
+baseurl: /read.container
+url: https://eguikuma.github.io
+markdown: kramdown
+permalink: pretty
+has_appendices: true
+
+include:
+  - manifest.webmanifest
+  - sw.js

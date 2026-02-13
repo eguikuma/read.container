@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: PID 1 問題
+---
 
-# appendix：PID 1 問題
+# [appendix：PID 1 問題](#pid1-problem) {#pid1-problem}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[01-container](../01-container.md) では、PID namespace によってコンテナ内の最初のプロセスが PID 1 になることを学びました
+[01-container](../../01-container/) では、PID namespace によってコンテナ内の最初のプロセスが PID 1 になることを学びました
 
 そして「PID 1 にはシグナルハンドリングに関する特別な扱いがあるため、コンテナのアプリケーション設計に影響します」と述べました
 
@@ -14,7 +15,7 @@
 
 ---
 
-## PID 1 の特殊性
+## [PID 1 の特殊性](#pid1-special-behavior) {#pid1-special-behavior}
 
 Linux カーネルは PID 1 を<strong>特別なプロセス</strong>として扱います
 
@@ -22,7 +23,7 @@ Linux カーネルは PID 1 を<strong>特別なプロセス</strong>として�
 
 init プロセスはシステム全体のプロセス管理を担う重要な役割を持つため、カーネルは PID 1 に以下の特別な扱いを適用します
 
-### シグナルのデフォルト動作が無効化される
+### [シグナルのデフォルト動作が無効化される](#signal-default-behavior-disabled) {#signal-default-behavior-disabled}
 
 通常のプロセスでは、シグナルハンドラを登録していないシグナルに対して<strong>デフォルト動作</strong>が実行されます
 
@@ -30,14 +31,15 @@ init プロセスはシステム全体のプロセス管理を担う重要な役
 
 しかし、PID 1 では<strong>明示的にシグナルハンドラを登録していないシグナルはすべて無視</strong>されます
 
-| プロセス   | SIGTERM を受信（ハンドラ未登録） | 結果         |
+{: .labeled}
+| プロセス | SIGTERM を受信（ハンドラ未登録） | 結果 |
 | ---------- | -------------------------------- | ------------ |
-| 通常の PID | デフォルト動作（終了）           | 終了する     |
-| PID 1      | デフォルト動作が無効化           | 何も起きない |
+| 通常の PID | デフォルト動作（終了） | 終了する |
+| PID 1 | デフォルト動作が無効化 | 何も起きない |
 
 これは、init プロセスが誤って終了するとシステム全体が停止してしまうため、カーネルが init を保護する仕組みです
 
-### PID 1 はゾンビプロセスを回収する責務がある
+### [PID 1 はゾンビプロセスを回収する責務がある](#pid1-zombie-reaping-responsibility) {#pid1-zombie-reaping-responsibility}
 
 プロセスが終了すると、カーネルはそのプロセスの終了情報を親プロセスが回収するまで保持します
 
@@ -53,7 +55,7 @@ PID 1 は引き取った孤児プロセスの終了を wait() で回収する責
 
 ---
 
-## コンテナでの問題
+## [コンテナでの問題](#container-problems) {#container-problems}
 
 コンテナでは PID namespace により、コンテナ内で最初に起動するプロセスが PID 1 になります
 
@@ -63,15 +65,16 @@ PID 1 は引き取った孤児プロセスの終了を wait() で回収する責
 
 これにより、2 つの問題が発生します
 
-### 問題 1：graceful shutdown ができない
+### [問題 1：graceful shutdown ができない](#problem-graceful-shutdown) {#problem-graceful-shutdown}
 
 `docker stop` コマンドは、以下の手順でコンテナを停止します
 
-| 手順 | 動作                                                      |
+{: .labeled}
+| 手順 | 動作 |
 | ---- | --------------------------------------------------------- |
-| 1    | コンテナの PID 1 に SIGTERM を送信する                    |
-| 2    | 猶予期間（デフォルト 10 秒）待機する                      |
-| 3    | 猶予期間内に終了しなければ SIGKILL を送信して強制終了する |
+| 1 | コンテナの PID 1 に SIGTERM を送信する |
+| 2 | 猶予期間（デフォルト 10 秒）待機する |
+| 3 | 猶予期間内に終了しなければ SIGKILL を送信して強制終了する |
 
 アプリケーションが SIGTERM のハンドラを登録していない場合、PID 1 の特殊性により SIGTERM は無視されます
 
@@ -87,7 +90,7 @@ SIGTERM ハンドラがない場合（PID 1）：
   docker stop → SIGTERM → 無視 → 10秒待機 → SIGKILL → 強制終了
 ```
 
-### 問題 2：ゾンビプロセスが蓄積する
+### [問題 2：ゾンビプロセスが蓄積する](#problem-zombie-accumulation) {#problem-zombie-accumulation}
 
 コンテナ内でアプリケーションが子プロセスを生成し、その子プロセスがさらに子プロセスを生成するケースがあります
 
@@ -101,20 +104,21 @@ cgroup の pids.max による制限に達すると、新しいプロセスを作
 
 ---
 
-## 解決策：コンテナ用 init プロセス
+## [解決策：コンテナ用 init プロセス](#init-process-solution) {#init-process-solution}
 
 これらの問題を解決するために、コンテナ用の軽量な init プロセスが開発されています
 
-### tini
+### [tini](#tini) {#tini}
 
 <strong>tini</strong> は、コンテナ専用に設計された軽量 init プロセスです
 
 tini は以下の 2 つの責務だけを果たします
 
-| 責務                 | 動作                                                                |
+{: .labeled}
+| 責務 | 動作 |
 | -------------------- | ------------------------------------------------------------------- |
-| シグナルの転送       | tini が受け取ったシグナルを子プロセス（アプリケーション）に転送する |
-| ゾンビプロセスの回収 | 孤児プロセスを wait() で回収する                                    |
+| シグナルの転送 | tini が受け取ったシグナルを子プロセス（アプリケーション）に転送する |
+| ゾンビプロセスの回収 | 孤児プロセスを wait() で回収する |
 
 tini を使うと、PID 1 が tini になり、アプリケーションは PID 2 以降で動作します
 
@@ -127,13 +131,13 @@ tini を使う場合：
   PID 2: nginx（通常のプロセスとして SIGTERM を受け取る）
 ```
 
-### dumb-init
+### [dumb-init](#dumb-init) {#dumb-init}
 
 <strong>dumb-init</strong> は、Yelp が開発した軽量 init プロセスです
 
 tini と同様にシグナルの転送とゾンビプロセスの回収を行います
 
-### Docker の --init オプション
+### [Docker の --init オプション](#docker-init-option) {#docker-init-option}
 
 Docker は `--init` オプションでコンテナに tini を自動的に挿入する機能を提供しています
 
@@ -145,18 +149,19 @@ docker run --init nginx
 
 ---
 
-## Dockerfile の書き方との関係
+## [Dockerfile の書き方との関係](#dockerfile-writing-and-pid1) {#dockerfile-writing-and-pid1}
 
 Dockerfile の CMD / ENTRYPOINT の書き方によって、コンテナ内のプロセス構成が変わります
 
-### exec form と shell form
+### [exec form と shell form](#exec-form-vs-shell-form) {#exec-form-vs-shell-form}
 
 CMD / ENTRYPOINT には 2 つの記法があります
 
-| 記法       | 例                                 | PID 1 になるプロセス |
+{: .labeled}
+| 記法 | 例 | PID 1 になるプロセス |
 | ---------- | ---------------------------------- | -------------------- |
-| exec form  | CMD ["nginx", "-g", "daemon off;"] | nginx                |
-| shell form | CMD nginx -g "daemon off;"         | /bin/sh -c           |
+| exec form | CMD ["nginx", "-g", "daemon off;"] | nginx |
+| shell form | CMD nginx -g "daemon off;" | /bin/sh -c |
 
 <strong>exec form</strong>
 
@@ -180,38 +185,39 @@ PID 1 は `/bin/sh` になり、nginx は `/bin/sh` の子プロセスとして�
 
 `/bin/sh` はシグナルを子プロセスに転送しないため、`docker stop` で SIGTERM を送っても nginx には届きません
 
-### 推奨される書き方
+### [推奨される書き方](#recommended-dockerfile-style) {#recommended-dockerfile-style}
 
-| 方針                                  | 説明                                                      |
+{: .labeled}
+| 方針 | 説明 |
 | ------------------------------------- | --------------------------------------------------------- |
-| exec form を使う                      | アプリケーションが直接 PID 1 になり、シグナルを受け取れる |
-| アプリケーションで SIGTERM を処理する | graceful shutdown を実装する                              |
-| または --init（tini）を使う           | シグナル転送とゾンビ回収を tini に任せる                  |
+| exec form を使う | アプリケーションが直接 PID 1 になり、シグナルを受け取れる |
+| アプリケーションで SIGTERM を処理する | graceful shutdown を実装する |
+| または --init（tini）を使う | シグナル転送とゾンビ回収を tini に任せる |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>シグナル</strong>
 
-- [signal(7) - Linux manual page](https://man7.org/linux/man-pages/man7/signal.7.html)
+- [signal(7) - Linux manual page](https://man7.org/linux/man-pages/man7/signal.7.html){:target="\_blank"}
   - シグナルのデフォルト動作と PID 1 の特殊性
 
 <strong>Docker</strong>
 
-- [Docker stop](https://docs.docker.com/reference/cli/docker/container/stop/)
+- [Docker stop](https://docs.docker.com/reference/cli/docker/container/stop/){:target="\_blank"}
   - docker stop のシグナル送信手順
-- [Dockerfile reference - CMD](https://docs.docker.com/reference/dockerfile/#cmd)
+- [Dockerfile reference - CMD](https://docs.docker.com/reference/dockerfile/#cmd){:target="\_blank"}
   - exec form と shell form の違い
 
 <strong>tini</strong>
 
-- [tini - GitHub](https://github.com/krallin/tini)
+- [tini - GitHub](https://github.com/krallin/tini){:target="\_blank"}
   - コンテナ専用の軽量 init プロセス
 
 <strong>dumb-init</strong>
 
-- [dumb-init - GitHub](https://github.com/Yelp/dumb-init)
+- [dumb-init - GitHub](https://github.com/Yelp/dumb-init){:target="\_blank"}
   - Yelp が開発した軽量 init プロセス

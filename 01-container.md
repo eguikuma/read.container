@@ -1,10 +1,11 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: コンテナとは何か
+---
 
-# 01-container：コンテナとは何か
+# [01-container：コンテナとは何か](#container) {#container}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
 前のシリーズでは、Linux カーネルが提供する2つの重要な機能を学びました
 
@@ -24,7 +25,7 @@ cgroup を使うと、CPU 時間やメモリ使用量に上限を設けること
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 コンテナと仮想マシン（VM）の違いを「住居」に例えてみましょう
 
@@ -54,7 +55,7 @@ cgroup を使うと、CPU 時間やメモリ使用量に上限を設けること
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -81,21 +82,21 @@ cgroup を使うと、CPU 時間やメモリ使用量に上限を設けること
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [コンテナとは何か](#コンテナとは何か)
-2. [仮想マシンとの違い](#仮想マシンとの違い)
-3. [namespace がコンテナの隔離を作る](#namespace-がコンテナの隔離を作る)
-4. [cgroup がコンテナのリソースを制限する](#cgroup-がコンテナのリソースを制限する)
-5. [namespace + cgroup だけではコンテナにならない](#namespace--cgroup-だけではコンテナにならない)
-6. [コンテナのライフサイクル](#コンテナのライフサイクル)
-7. [次のトピックへ](#次のトピックへ)
-8. [用語集](#用語集)
-9. [参考資料](#参考資料)
+1. [コンテナとは何か](#what-is-container)
+2. [仮想マシンとの違い](#vs-virtual-machine)
+3. [namespace がコンテナの隔離を作る](#namespace-for-isolation)
+4. [cgroup がコンテナのリソースを制限する](#cgroup-for-resource-limits)
+5. [namespace + cgroup だけではコンテナにならない](#beyond-namespace-and-cgroup)
+6. [コンテナのライフサイクル](#container-lifecycle)
+7. [次のトピックへ](#next-topic)
+8. [用語集](#glossary)
+9. [参考資料](#references)
 
 ---
 
-## コンテナとは何か
+## [コンテナとは何か](#what-is-container) {#what-is-container}
 
 コンテナとは、<strong>隔離されたプロセス</strong>です
 
@@ -131,11 +132,11 @@ cgroup を使うと、CPU 時間やメモリ使用量に上限を設けること
 
 ---
 
-## 仮想マシンとの違い
+## [仮想マシンとの違い](#vs-virtual-machine) {#vs-virtual-machine}
 
 コンテナと仮想マシン（VM）は、どちらも「アプリケーションを独立した環境で動かす」という目的を持っていますが、実現方法が大きく異なります
 
-### アーキテクチャの比較
+### [アーキテクチャの比較](#architecture-comparison) {#architecture-comparison}
 
 <strong>仮想マシン（VM）</strong>
 
@@ -175,19 +176,20 @@ VM は<strong>ハイパーバイザ</strong>がハードウェアを仮想化し
 
 ゲスト OS が不要なため、起動が速く、リソース消費も少なくなります
 
-### 比較表
+### [比較表](#comparison-table) {#comparison-table}
 
-| 項目           | 仮想マシン（VM）                       | コンテナ                               |
+{: .labeled}
+| 項目 | 仮想マシン（VM） | コンテナ |
 | -------------- | -------------------------------------- | -------------------------------------- |
-| 隔離の仕組み   | ハイパーバイザによるハードウェア仮想化 | namespace と cgroup によるプロセス隔離 |
-| カーネル       | ゲスト OS 専用のカーネル               | ホストのカーネルを共有                 |
-| 起動時間       | 数十秒〜数分（OS の起動が必要）        | 数百ミリ秒〜数秒（プロセスの起動のみ） |
-| リソース消費   | 大きい（OS 全体が必要）                | 小さい（アプリケーションのみ）         |
-| イメージサイズ | 数 GB〜数十 GB                         | 数 MB〜数百 MB                         |
-| 隔離レベル     | 高い（カーネルが独立）                 | 中程度（カーネルを共有）               |
-| 用途           | 異なる OS の実行、強い隔離が必要な場合 | マイクロサービス、CI/CD、開発環境      |
+| 隔離の仕組み | ハイパーバイザによるハードウェア仮想化 | namespace と cgroup によるプロセス隔離 |
+| カーネル | ゲスト OS 専用のカーネル | ホストのカーネルを共有 |
+| 起動時間 | 数十秒〜数分（OS の起動が必要） | 数百ミリ秒〜数秒（プロセスの起動のみ） |
+| リソース消費 | 大きい（OS 全体が必要） | 小さい（アプリケーションのみ） |
+| イメージサイズ | 数 GB〜数十 GB | 数 MB〜数百 MB |
+| 隔離レベル | 高い（カーネルが独立） | 中程度（カーネルを共有） |
+| 用途 | 異なる OS の実行、強い隔離が必要な場合 | マイクロサービス、CI/CD、開発環境 |
 
-### どちらを選ぶか
+### [どちらを選ぶか](#which-to-choose) {#which-to-choose}
 
 コンテナは軽量で起動が速いため、多くの場面で VM の代わりに使われるようになりました
 
@@ -201,7 +203,7 @@ VM は<strong>ハイパーバイザ</strong>がハードウェアを仮想化し
 
 ---
 
-## namespace がコンテナの隔離を作る
+## [namespace がコンテナの隔離を作る](#namespace-for-isolation) {#namespace-for-isolation}
 
 namespace は、プロセスが見える<strong>システムリソースの範囲を制限</strong>するカーネル機能です
 
@@ -209,18 +211,19 @@ namespace は、プロセスが見える<strong>システムリソースの範�
 
 Linux には以下の 8 種類の namespace があります
 
-| namespace         | 隔離するもの         | コンテナでの役割                                                            |
+{: .labeled}
+| namespace | 隔離するもの | コンテナでの役割 |
 | ----------------- | -------------------- | --------------------------------------------------------------------------- |
-| PID namespace     | プロセス ID          | コンテナ内のプロセスだけが見える。コンテナ内の最初のプロセスが PID 1 になる |
-| Network namespace | ネットワークスタック | コンテナ専用のネットワークインターフェース、IP アドレス、ポートを持つ       |
-| Mount namespace   | マウントポイント     | コンテナ専用のファイルシステムを持つ                                        |
-| UTS namespace     | ホスト名             | コンテナ専用のホスト名を持つ                                                |
-| IPC namespace     | プロセス間通信       | コンテナ内のプロセス同士だけが IPC できる                                   |
-| User namespace    | UID / GID            | コンテナ内の root をホストの一般ユーザーにマッピングできる                  |
-| Cgroup namespace  | cgroup の階層ビュー  | コンテナから見える cgroup の階層を制限する                                  |
-| Time namespace    | 時刻                 | コンテナ専用の時刻オフセットを持つ（Linux 5.6 以降）                        |
+| PID namespace | プロセス ID | コンテナ内のプロセスだけが見える。コンテナ内の最初のプロセスが PID 1 になる |
+| Network namespace | ネットワークスタック | コンテナ専用のネットワークインターフェース、IP アドレス、ポートを持つ |
+| Mount namespace | マウントポイント | コンテナ専用のファイルシステムを持つ |
+| UTS namespace | ホスト名 | コンテナ専用のホスト名を持つ |
+| IPC namespace | プロセス間通信 | コンテナ内のプロセス同士だけが IPC できる |
+| User namespace | UID / GID | コンテナ内の root をホストの一般ユーザーにマッピングできる |
+| Cgroup namespace | cgroup の階層ビュー | コンテナから見える cgroup の階層を制限する |
+| Time namespace | 時刻 | コンテナ専用の時刻オフセットを持つ（Linux 5.6 以降） |
 
-### PID namespace
+### [PID namespace](#pid-namespace) {#pid-namespace}
 
 コンテナの中で動くプロセスには、ホストとは別の PID が割り当てられます
 
@@ -230,7 +233,7 @@ PID 1 は通常 OS の init プロセス（systemd 等）ですが、コンテ�
 
 PID 1 にはシグナルハンドリングに関する特別な扱いがあるため、コンテナのアプリケーション設計に影響します
 
-### Network namespace
+### [Network namespace](#network-namespace) {#network-namespace}
 
 各コンテナは独自のネットワークスタックを持ちます
 
@@ -238,9 +241,9 @@ PID 1 にはシグナルハンドリングに関する特別な扱いがある�
 
 たとえば、2つのコンテナがどちらもポート 80 でリッスンしても、Network namespace が異なるため競合しません
 
-コンテナのネットワークについては [04-network](./04-network.md) で詳しく学びます
+コンテナのネットワークについては [04-network](../04-network/) で詳しく学びます
 
-### Mount namespace
+### [Mount namespace](#mount-namespace) {#mount-namespace}
 
 各コンテナは独自のファイルシステムビューを持ちます
 
@@ -248,92 +251,96 @@ PID 1 にはシグナルハンドリングに関する特別な扱いがある�
 
 ホストのファイルシステムとは独立しているため、コンテナ内でファイルを変更してもホストには影響しません
 
-### User namespace
+### [User namespace](#user-namespace) {#user-namespace}
 
 User namespace を使うと、コンテナ内の root（UID 0）をホストの一般ユーザー（例：UID 100000）にマッピングできます
 
 これにより、コンテナ内では root 権限で動作しているように見えても、ホストから見ると一般ユーザーとして動作します
 
-この仕組みは<strong>rootless コンテナ</strong>の基盤です（[06-security](./06-security.md) で詳しく学びます）
+この仕組みは<strong>rootless コンテナ</strong>の基盤です（[06-security](../06-security/) で詳しく学びます）
 
 ---
 
-## cgroup がコンテナのリソースを制限する
+## [cgroup がコンテナのリソースを制限する](#cgroup-for-resource-limits) {#cgroup-for-resource-limits}
 
 cgroup は、プロセスグループが使用できるリソースに<strong>上限を設定</strong>するカーネル機能です
 
 namespace が「何が見えるか」を制御するのに対し、cgroup は「どれだけ使えるか」を制御します
 
-### なぜリソース制限が必要なのか
+### [なぜリソース制限が必要なのか](#why-resource-limits) {#why-resource-limits}
 
 namespace だけでは、あるコンテナが CPU やメモリを大量に消費して、他のコンテナやホストに影響を与えることを防げません
 
 cgroup を使えば、各コンテナが使えるリソースを制限し、1つのコンテナが暴走しても他に影響しないようにできます
 
-### 主要なコントローラ
+### [主要なコントローラ](#main-controllers) {#main-controllers}
 
 cgroup には複数の<strong>コントローラ</strong>があり、それぞれ異なるリソースを制限します
 
-| コントローラ | 制限するリソース | コンテナでの用途                                         |
+{: .labeled}
+| コントローラ | 制限するリソース | コンテナでの用途 |
 | ------------ | ---------------- | -------------------------------------------------------- |
-| CPU          | CPU 使用時間     | コンテナが使える CPU 時間の上限を設定                    |
-| Memory       | メモリ使用量     | コンテナが使えるメモリの上限を設定                       |
-| I/O          | ディスク I/O     | コンテナのディスク読み書き速度を制限                     |
-| PID          | プロセス数       | コンテナ内で作成できるプロセス数を制限（fork bomb 対策） |
+| CPU | CPU 使用時間 | コンテナが使える CPU 時間の上限を設定 |
+| Memory | メモリ使用量 | コンテナが使えるメモリの上限を設定 |
+| I/O | ディスク I/O | コンテナのディスク読み書き速度を制限 |
+| PID | プロセス数 | コンテナ内で作成できるプロセス数を制限（fork bomb 対策） |
 
-### Docker での設定例
+### [Docker での設定例](#docker-configuration-example) {#docker-configuration-example}
 
 Docker では、コンテナ実行時のオプションが cgroup の設定に変換されます
 
-| Docker オプション  | cgroup の設定 | 意味                              |
+{: .labeled}
+| Docker オプション | cgroup の設定 | 意味 |
 | ------------------ | ------------- | --------------------------------- |
-| `--cpus=2`         | cpu.max       | CPU を最大2コア分使用可能         |
-| `--memory=512m`    | memory.max    | メモリを最大 512 MB 使用可能      |
-| `--pids-limit=100` | pids.max      | プロセスを最大 100 個まで作成可能 |
+| `--cpus=2` | cpu.max | CPU を最大2コア分使用可能 |
+| `--memory=512m` | memory.max | メモリを最大 512 MB 使用可能 |
+| `--pids-limit=100` | pids.max | プロセスを最大 100 個まで作成可能 |
 
 `docker run --cpus=2 --memory=512m nginx` のように指定すると、Docker はカーネルの cgroup を設定して、そのコンテナのリソースを制限します
 
 ---
 
-## namespace + cgroup だけではコンテナにならない
+## [namespace + cgroup だけではコンテナにならない](#beyond-namespace-and-cgroup) {#beyond-namespace-and-cgroup}
 
 ここまで、namespace がプロセスを隔離し、cgroup がリソースを制限することを学びました
 
 しかし、実用的なコンテナを作るには、さらにいくつかの要素が必要です
 
-| 要素               | 役割                 | 詳細                                                          |
+{: .labeled}
+| 要素 | 役割 | 詳細 |
 | ------------------ | -------------------- | ------------------------------------------------------------- |
-| namespace          | プロセスの隔離       | 見える範囲を制限する                                          |
-| cgroup             | リソースの制限       | 使える量を制限する                                            |
-| ファイルシステム   | コンテナの中身       | アプリケーションとその依存関係を含むファイルシステム          |
-| コンテナイメージ   | ファイルシステムの元 | レイヤ構造で効率的に管理されたファイルシステムのテンプレート  |
-| コンテナランタイム | コンテナの管理       | namespace / cgroup の設定、イメージの展開、ライフサイクル管理 |
-| ネットワーク       | コンテナの通信       | コンテナとホスト、コンテナ同士の通信を実現する                |
+| namespace | プロセスの隔離 | 見える範囲を制限する |
+| cgroup | リソースの制限 | 使える量を制限する |
+| ファイルシステム | コンテナの中身 | アプリケーションとその依存関係を含むファイルシステム |
+| コンテナイメージ | ファイルシステムの元 | レイヤ構造で効率的に管理されたファイルシステムのテンプレート |
+| コンテナランタイム | コンテナの管理 | namespace / cgroup の設定、イメージの展開、ライフサイクル管理 |
+| ネットワーク | コンテナの通信 | コンテナとホスト、コンテナ同士の通信を実現する |
 
 これらの要素は、このリポジトリの後続トピックで1つずつ学びます
 
-- コンテナランタイム → [02-oci-and-runtime](./02-oci-and-runtime.md)
-- コンテナイメージとファイルシステム → [03-image](./03-image.md)
-- ネットワーク → [04-network](./04-network.md)
+- コンテナランタイム → [02-oci-and-runtime](../02-oci-and-runtime/)
+- コンテナイメージとファイルシステム → [03-image](../03-image/)
+- ネットワーク → [04-network](../04-network/)
 
 ---
 
-## コンテナのライフサイクル
+## [コンテナのライフサイクル](#container-lifecycle) {#container-lifecycle}
 
 コンテナは以下の状態を遷移します
 
-| 状態                | 説明                                                                                           |
+{: .labeled}
+| 状態 | 説明 |
 | ------------------- | ---------------------------------------------------------------------------------------------- |
-| Creating（作成中）  | コンテナの設定（namespace、cgroup、ファイルシステム）を準備している状態                        |
-| Created（作成済み） | コンテナの設定が準備された状態。プロセスはまだ開始していない                                   |
-| Running（実行中）   | コンテナ内のプロセスが実行されている状態                                                       |
+| Creating（作成中） | コンテナの設定（namespace、cgroup、ファイルシステム）を準備している状態 |
+| Created（作成済み） | コンテナの設定が準備された状態。プロセスはまだ開始していない |
+| Running（実行中） | コンテナ内のプロセスが実行されている状態 |
 | Stopped（停止済み） | コンテナ内のプロセスが終了した状態。コンテナの設定やファイルシステムの変更はまだ保持されている |
 
 これらは OCI Runtime Specification で定義される主要な 4 つの状態です（仕様にはこのほか Pausing / Paused 状態も存在しますが、基本的な流れはこの 4 状態で理解できます）
 
-詳しくは [02-oci-and-runtime](./02-oci-and-runtime.md) で学びます
+詳しくは [02-oci-and-runtime](../02-oci-and-runtime/) で学びます
 
-### 状態遷移の流れ
+### [状態遷移の流れ](#state-transition-flow) {#state-transition-flow}
 
 ```
 Creating ──→ Created ──→ Running ──→ Stopped ──→（削除）
@@ -373,7 +380,7 @@ Docker の場合、ファイルシステムの変更は保持されたまま、�
 
 ---
 
-## 次のトピックへ
+## [次のトピックへ](#next-topic) {#next-topic}
 
 このトピックでは、以下のことを学びました
 
@@ -392,58 +399,59 @@ Docker の場合、ファイルシステムの変更は保持されたまま、�
 
 `docker run` と打つと、裏側で何が動いているのでしょうか？
 
-次のトピック [02-oci-and-runtime](./02-oci-and-runtime.md) では、コンテナを管理する<strong>ランタイム</strong>と、その標準仕様である <strong>OCI</strong> を学びます
+次のトピック [02-oci-and-runtime](../02-oci-and-runtime/) では、コンテナを管理する<strong>ランタイム</strong>と、その標準仕様である <strong>OCI</strong> を学びます
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語               | 説明                                                                                                            |
+{: .labeled}
+| 用語 | 説明 |
 | ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| コンテナ           | namespace で隔離され、cgroup でリソースが制限されたプロセス実行環境                                             |
-| 仮想マシン（VM）   | ハイパーバイザがハードウェアを仮想化し、ゲスト OS を含む完全に独立した環境を提供する仕組み                      |
-| ハイパーバイザ     | ハードウェアを仮想化して複数の VM を動作させるソフトウェア                                                      |
-| ゲスト OS          | VM の中で動作する OS（独自のカーネルを含む）                                                                    |
-| ホスト OS          | VM やコンテナが動作する物理マシンの OS                                                                          |
-| namespace          | プロセスが見えるシステムリソースの範囲を制限するカーネル機能                                                    |
-| PID namespace      | プロセス ID の空間を隔離する namespace                                                                          |
-| Network namespace  | ネットワークスタック（インターフェース、IP アドレス、ポート、ルーティングテーブル）を隔離する namespace         |
-| Mount namespace    | マウントポイントを隔離する namespace                                                                            |
-| UTS namespace      | ホスト名とドメイン名を隔離する namespace                                                                        |
-| IPC namespace      | System V IPC と POSIX メッセージキューを隔離する namespace                                                      |
-| User namespace     | UID と GID のマッピングを提供する namespace                                                                     |
-| Cgroup namespace   | cgroup の階層ビューを隔離する namespace                                                                         |
-| Time namespace     | 時刻のオフセットを隔離する namespace                                                                            |
-| cgroup             | プロセスグループのリソース使用量を制限・管理するカーネル機能                                                    |
-| コントローラ       | cgroup でリソースを制限するためのモジュール（CPU、Memory、I/O、PID 等）                                         |
+| コンテナ | namespace で隔離され、cgroup でリソースが制限されたプロセス実行環境 |
+| 仮想マシン（VM） | ハイパーバイザがハードウェアを仮想化し、ゲスト OS を含む完全に独立した環境を提供する仕組み |
+| ハイパーバイザ | ハードウェアを仮想化して複数の VM を動作させるソフトウェア |
+| ゲスト OS | VM の中で動作する OS（独自のカーネルを含む） |
+| ホスト OS | VM やコンテナが動作する物理マシンの OS |
+| namespace | プロセスが見えるシステムリソースの範囲を制限するカーネル機能 |
+| PID namespace | プロセス ID の空間を隔離する namespace |
+| Network namespace | ネットワークスタック（インターフェース、IP アドレス、ポート、ルーティングテーブル）を隔離する namespace |
+| Mount namespace | マウントポイントを隔離する namespace |
+| UTS namespace | ホスト名とドメイン名を隔離する namespace |
+| IPC namespace | System V IPC と POSIX メッセージキューを隔離する namespace |
+| User namespace | UID と GID のマッピングを提供する namespace |
+| Cgroup namespace | cgroup の階層ビューを隔離する namespace |
+| Time namespace | 時刻のオフセットを隔離する namespace |
+| cgroup | プロセスグループのリソース使用量を制限・管理するカーネル機能 |
+| コントローラ | cgroup でリソースを制限するためのモジュール（CPU、Memory、I/O、PID 等） |
 | コンテナランタイム | namespace の作成、cgroup の設定、ファイルシステムのマウントなど、コンテナのライフサイクルを管理するソフトウェア |
-| コンテナイメージ   | コンテナのファイルシステムのテンプレート。アプリケーションとその依存関係を含む                                  |
-| rootless コンテナ  | User namespace を使い、一般ユーザー権限でコンテナを実行する仕組み                                               |
-| fork bomb          | プロセスが無限に自分自身を複製し、システムリソースを枯渇させる攻撃                                              |
-| ライフサイクル     | コンテナの状態遷移（Creating → Created → Running → Stopped）                                                    |
+| コンテナイメージ | コンテナのファイルシステムのテンプレート。アプリケーションとその依存関係を含む |
+| rootless コンテナ | User namespace を使い、一般ユーザー権限でコンテナを実行する仕組み |
+| fork bomb | プロセスが無限に自分自身を複製し、システムリソースを枯渇させる攻撃 |
+| ライフサイクル | コンテナの状態遷移（Creating → Created → Running → Stopped） |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>namespace</strong>
 
-- [namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/namespaces.7.html)
+- [namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/namespaces.7.html){:target="\_blank"}
   - Linux namespace の概要と 8 種類の namespace の説明
 
 <strong>cgroup</strong>
 
-- [cgroups(7) - Linux manual page](https://man7.org/linux/man-pages/man7/cgroups.7.html)
+- [cgroups(7) - Linux manual page](https://man7.org/linux/man-pages/man7/cgroups.7.html){:target="\_blank"}
   - cgroup v1 / v2 の概要、コントローラの説明
 
 <strong>コンテナの標準仕様</strong>
 
-- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec/blob/main/spec.md)
+- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec/blob/main/spec.md){:target="\_blank"}
   - コンテナのライフサイクル（状態遷移）の定義
 
 <strong>Docker ドキュメント</strong>
 
-- [Docker overview](https://docs.docker.com/get-started/overview/)
+- [Docker overview](https://docs.docker.com/get-started/overview/){:target="\_blank"}
   - Docker のアーキテクチャとコンテナの概要

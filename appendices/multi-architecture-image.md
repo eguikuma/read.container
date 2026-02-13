@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: マルチアーキテクチャイメージ
+---
 
-# appendix：マルチアーキテクチャイメージ
+# [appendix：マルチアーキテクチャイメージ](#multi-architecture-image) {#multi-architecture-image}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[03-image](../03-image.md) では、コンテナイメージがレイヤ構造で構成され、タグやダイジェストで識別されることを学びました
+[03-image](../../03-image/) では、コンテナイメージがレイヤ構造で構成され、タグやダイジェストで識別されることを学びました
 
 `docker pull nginx:1.27` と実行すると nginx のイメージが取得されます
 
@@ -16,29 +17,30 @@
 
 ---
 
-## CPU アーキテクチャとコンテナ
+## [CPU アーキテクチャとコンテナ](#cpu-architecture-and-container) {#cpu-architecture-and-container}
 
-[01-container](../01-container.md) で学んだように、コンテナはホストのカーネルを共有する「隔離されたプロセス」です
+[01-container](../../01-container/) で学んだように、コンテナはホストのカーネルを共有する「隔離されたプロセス」です
 
 プロセスが実行するバイナリは、特定の CPU アーキテクチャ向けにコンパイルされています
 
 x86_64（amd64）向けにコンパイルされたバイナリは、ARM（arm64）の CPU では実行できません
 
-| アーキテクチャ | 説明                                        | 代表的な環境                    |
+{: .labeled}
+| アーキテクチャ | 説明 | 代表的な環境 |
 | -------------- | ------------------------------------------- | ------------------------------- |
-| amd64          | x86_64 とも呼ばれる 64 ビットアーキテクチャ | 多くのサーバー、デスクトップ PC |
-| arm64          | AArch64 とも呼ばれる 64 ビット ARM          | Apple Silicon、AWS Graviton     |
-| arm/v7         | 32 ビット ARM                               | Raspberry Pi（一部のモデル）    |
+| amd64 | x86_64 とも呼ばれる 64 ビットアーキテクチャ | 多くのサーバー、デスクトップ PC |
+| arm64 | AArch64 とも呼ばれる 64 ビット ARM | Apple Silicon、AWS Graviton |
+| arm/v7 | 32 ビット ARM | Raspberry Pi（一部のモデル） |
 
 コンテナイメージにはバイナリが含まれるため、イメージも CPU アーキテクチャに依存します
 
 ---
 
-## OCI Image Index
+## [OCI Image Index](#oci-image-index) {#oci-image-index}
 
 OCI Image Specification では、1 つのタグで複数のアーキテクチャをサポートするために<strong>Image Index</strong>（マニフェストリスト）という仕組みを定義しています
 
-### 構造
+### [構造](#structure) {#structure}
 
 Image Index は、複数の<strong>Manifest</strong>（マニフェスト）への参照を持ちます
 
@@ -60,30 +62,32 @@ Image Index
         └── Layers（arm/v7 向けのレイヤ群）
 ```
 
-### Image Index の中身
+### [Image Index の中身](#image-index-contents) {#image-index-contents}
 
 Image Index には、各 Manifest のダイジェスト、対応するアーキテクチャ、OS の情報が含まれます
 
-| フィールド                        | 説明                                         |
+{: .labeled}
+| フィールド | 説明 |
 | --------------------------------- | -------------------------------------------- |
-| mediaType                         | このドキュメントの種類（Image Index）        |
-| manifests                         | 各アーキテクチャ向け Manifest への参照の配列 |
-| manifests[].digest                | 各 Manifest のダイジェスト（SHA256）         |
-| manifests[].platform.architecture | CPU アーキテクチャ（amd64、arm64 等）        |
-| manifests[].platform.os           | OS（linux、windows 等）                      |
+| mediaType | このドキュメントの種類（Image Index） |
+| manifests | 各アーキテクチャ向け Manifest への参照の配列 |
+| manifests[].digest | 各 Manifest のダイジェスト（SHA256） |
+| manifests[].platform.architecture | CPU アーキテクチャ（amd64、arm64 等） |
+| manifests[].platform.os | OS（linux、windows 等） |
 
 ---
 
-## pull 時のアーキテクチャ選択
+## [pull 時のアーキテクチャ選択](#architecture-selection-on-pull) {#architecture-selection-on-pull}
 
 `docker pull nginx:1.27` を実行すると、内部では以下の手順でイメージが取得されます
 
-| 手順 | 動作                                                                            |
+{: .labeled}
+| 手順 | 動作 |
 | ---- | ------------------------------------------------------------------------------- |
-| 1    | レジストリに nginx:1.27 の情報を問い合わせる                                    |
-| 2    | Image Index を受け取る                                                          |
-| 3    | Image Index の中から、ホストの CPU アーキテクチャに一致する Manifest を選択する |
-| 4    | 選択した Manifest が指す Config と Layers をダウンロードする                    |
+| 1 | レジストリに nginx:1.27 の情報を問い合わせる |
+| 2 | Image Index を受け取る |
+| 3 | Image Index の中から、ホストの CPU アーキテクチャに一致する Manifest を選択する |
+| 4 | 選択した Manifest が指す Config と Layers をダウンロードする |
 
 この選択は<strong>自動的</strong>に行われます
 
@@ -91,7 +95,7 @@ Image Index には、各 Manifest のダイジェスト、対応するアーキ�
 
 amd64 のマシンで `docker pull nginx:1.27` を実行すれば amd64 向けのイメージが、arm64 のマシンで実行すれば arm64 向けのイメージが取得されます
 
-### 特定のアーキテクチャを明示的に指定する
+### [特定のアーキテクチャを明示的に指定する](#specifying-architecture) {#specifying-architecture}
 
 自動選択ではなく、特定のアーキテクチャのイメージを取得したい場合は `--platform` オプションを使います
 
@@ -103,11 +107,11 @@ docker pull --platform linux/arm64 nginx:1.27
 
 ---
 
-## マルチアーキテクチャイメージのビルド
+## [マルチアーキテクチャイメージのビルド](#building-multi-arch-image) {#building-multi-arch-image}
 
 マルチアーキテクチャイメージをビルドするには、各アーキテクチャ向けのイメージを個別にビルドし、それらを 1 つの Image Index にまとめます
 
-### docker buildx
+### [docker buildx](#docker-buildx) {#docker-buildx}
 
 <strong>docker buildx</strong> は、マルチアーキテクチャイメージのビルドをサポートするビルドツールです
 
@@ -117,14 +121,15 @@ docker buildx build --platform linux/amd64,linux/arm64 -t myapp:1.0 .
 
 このコマンドは、amd64 と arm64 の 2 つのアーキテクチャ向けにイメージをビルドし、1 つの Image Index にまとめます
 
-### クロスビルドの仕組み
+### [クロスビルドの仕組み](#cross-build-mechanism) {#cross-build-mechanism}
 
 ホストと異なるアーキテクチャ向けのビルドには、主に 2 つの方法があります
 
-| 方法                  | 説明                                                  | 特徴               |
+{: .labeled}
+| 方法 | 説明 | 特徴 |
 | --------------------- | ----------------------------------------------------- | ------------------ |
 | QEMU エミュレーション | ホスト上で対象アーキテクチャの CPU をエミュレートする | 設定が簡単だが低速 |
-| ネイティブノード      | 対象アーキテクチャの実機でビルドする                  | 高速だが実機が必要 |
+| ネイティブノード | 対象アーキテクチャの実機でビルドする | 高速だが実機が必要 |
 
 QEMU エミュレーションでは、amd64 のマシン上で arm64 のバイナリを生成できます
 
@@ -132,23 +137,23 @@ QEMU エミュレーションでは、amd64 のマシン上で arm64 のバイ�
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>OCI</strong>
 
-- [OCI Image Index Specification](https://github.com/opencontainers/image-spec/blob/main/image-index.md)
+- [OCI Image Index Specification](https://github.com/opencontainers/image-spec/blob/main/image-index.md){:target="\_blank"}
   - Image Index（マニフェストリスト）の標準仕様
 
 <strong>Docker</strong>
 
-- [Multi-platform images](https://docs.docker.com/build/building/multi-platform/)
+- [Multi-platform images](https://docs.docker.com/build/building/multi-platform/){:target="\_blank"}
   - マルチアーキテクチャイメージのビルド方法
-- [Docker buildx](https://docs.docker.com/build/builders/)
+- [Docker buildx](https://docs.docker.com/build/builders/){:target="\_blank"}
   - buildx の概要とビルダーの設定
 
 <strong>QEMU</strong>
 
-- [QEMU user-mode emulation](https://www.qemu.org/docs/master/user/main.html)
+- [QEMU user-mode emulation](https://www.qemu.org/docs/master/user/main.html){:target="\_blank"}
   - QEMU のユーザーモードエミュレーション

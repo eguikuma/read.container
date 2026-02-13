@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: ネットワーク
+---
 
-# 04-network：ネットワーク
+# [04-network：ネットワーク](#container-network) {#container-network}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[03-image](./03-image.md) では、コンテナイメージの仕組みを学びました
+[03-image](../03-image/) では、コンテナイメージの仕組みを学びました
 
 イメージからコンテナが作られ、overlay filesystem によって読み取り専用のイメージレイヤと書き込み可能なコンテナレイヤが統合されます
 
@@ -22,7 +23,7 @@ Web サーバーのコンテナにブラウザからアクセスできるのは�
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 コンテナネットワークを「オフィスビルの電話システム」に例えてみましょう
 
@@ -52,7 +53,7 @@ Web サーバーのコンテナにブラウザからアクセスできるのは�
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -79,23 +80,23 @@ Web サーバーのコンテナにブラウザからアクセスできるのは�
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [コンテナネットワークの全体像](#コンテナネットワークの全体像)
+1. [コンテナネットワークの全体像](#network-overview)
 2. [Network namespace](#network-namespace)
-3. [veth ペア](#veth-ペア)
-4. [bridge ネットワーク](#bridge-ネットワーク)
-5. [コンテナの通信フロー](#コンテナの通信フロー)
-6. [ポートマッピング](#ポートマッピング)
-7. [コンテナ間通信](#コンテナ間通信)
-8. [ネットワークドライバの種類](#ネットワークドライバの種類)
-9. [次のトピックへ](#次のトピックへ)
-10. [用語集](#用語集)
-11. [参考資料](#参考資料)
+3. [veth ペア](#veth-pair)
+4. [bridge ネットワーク](#bridge-network)
+5. [コンテナの通信フロー](#container-communication-flow)
+6. [ポートマッピング](#port-mapping)
+7. [コンテナ間通信](#inter-container-communication)
+8. [ネットワークドライバの種類](#network-driver-types)
+9. [次のトピックへ](#next-topic)
+10. [用語集](#glossary)
+11. [参考資料](#references)
 
 ---
 
-## コンテナネットワークの全体像
+## [コンテナネットワークの全体像](#network-overview) {#network-overview}
 
 コンテナネットワークは、以下の要素で構成されています
 
@@ -122,21 +123,22 @@ Web サーバーのコンテナにブラウザからアクセスできるのは�
 
 ---
 
-## Network namespace
+## [Network namespace](#network-namespace) {#network-namespace}
 
-[01-container](./01-container.md) で学んだように、Network namespace はネットワークスタック全体を隔離するカーネル機能です
+[01-container](../01-container/) で学んだように、Network namespace はネットワークスタック全体を隔離するカーネル機能です
 
 各コンテナは独自の Network namespace を持ち、以下のリソースがコンテナごとに独立します
 
-| リソース                     | 説明                           |
+{: .labeled}
+| リソース | 説明 |
 | ---------------------------- | ------------------------------ |
-| ネットワークインターフェース | eth0、lo など                  |
-| IP アドレス                  | コンテナ固有の IP アドレス     |
-| ポート                       | コンテナ内でリッスンするポート |
-| ルーティングテーブル         | パケットの送信先の決定ルール   |
-| iptables / nftables ルール   | パケットフィルタリングのルール |
+| ネットワークインターフェース | eth0、lo など |
+| IP アドレス | コンテナ固有の IP アドレス |
+| ポート | コンテナ内でリッスンするポート |
+| ルーティングテーブル | パケットの送信先の決定ルール |
+| iptables / nftables ルール | パケットフィルタリングのルール |
 
-### 新しい Network namespace の初期状態
+### [新しい Network namespace の初期状態](#new-network-namespace-initial-state) {#new-network-namespace-initial-state}
 
 コンテナ用の新しい Network namespace が作成された直後は、<strong>lo（ループバック）インターフェースだけ</strong>が存在します
 
@@ -148,13 +150,13 @@ lo はまだ起動していない状態（DOWN）であり、外部との通信�
 
 ---
 
-## veth ペア
+## [veth ペア](#veth-pair) {#veth-pair}
 
 <strong>veth</strong>（Virtual Ethernet）ペアは、2つの仮想ネットワークインターフェースがペアになったものです
 
 一方のインターフェースに送信したパケットは、もう一方のインターフェースで受信されます
 
-### veth ペアの仕組み
+### [veth ペアの仕組み](#veth-pair-mechanism) {#veth-pair-mechanism}
 
 ```
 コンテナの Network namespace      ホストの Network namespace
@@ -170,7 +172,7 @@ veth ペアの一端はコンテナの Network namespace 内に配置され、�
 
 もう一端はホストの Network namespace に残り、bridge に接続されます
 
-### veth ペアの特徴
+### [veth ペアの特徴](#veth-pair-characteristics) {#veth-pair-characteristics}
 
 - 仮想的な「ケーブル」であり、物理的なネットワーク機器は不要
 - 一方に送ったパケットは必ずもう一方で受信される
@@ -179,13 +181,13 @@ veth ペアの一端はコンテナの Network namespace 内に配置され、�
 
 ---
 
-## bridge ネットワーク
+## [bridge ネットワーク](#bridge-network) {#bridge-network}
 
 <strong>bridge</strong>（ブリッジ）は、複数のネットワークインターフェースを接続する仮想的なネットワークスイッチです
 
 Docker はデフォルトで <strong>docker0</strong> という bridge を作成します
 
-### bridge の役割
+### [bridge の役割](#bridge-role) {#bridge-role}
 
 ```
 docker0（bridge）─── 172.17.0.1
@@ -201,7 +203,7 @@ bridge は以下の役割を持ちます
 - コンテナへの IP アドレス割り当てのゲートウェイ
 - コンテナから外部への通信の中継点
 
-### bridge の IP アドレス
+### [bridge の IP アドレス](#bridge-ip-address) {#bridge-ip-address}
 
 bridge 自体にも IP アドレスが割り当てられます（例：172.17.0.1）
 
@@ -209,7 +211,7 @@ bridge 自体にも IP アドレスが割り当てられます（例：172.17.0.
 
 コンテナが外部に通信する際、パケットはまず bridge に送られます
 
-### ユーザー定義 bridge
+### [ユーザー定義 bridge](#user-defined-bridge) {#user-defined-bridge}
 
 Docker はデフォルトの docker0 bridge に加えて、ユーザーが独自の bridge を作成できます
 
@@ -219,17 +221,18 @@ docker network create my-network
 
 ユーザー定義 bridge はデフォルト bridge と比べて以下の利点があります
 
-| 機能                     | デフォルト bridge（docker0）       | ユーザー定義 bridge          |
+{: .labeled}
+| 機能 | デフォルト bridge（docker0） | ユーザー定義 bridge |
 | ------------------------ | ---------------------------------- | ---------------------------- |
-| DNS によるコンテナ名解決 | 利用不可                           | 利用可能                     |
-| コンテナの接続・切断     | コンテナの再起動が必要             | 実行中のコンテナに対して可能 |
-| ネットワークの分離       | すべてのコンテナが同じネットワーク | ネットワークごとに分離       |
+| DNS によるコンテナ名解決 | 利用不可 | 利用可能 |
+| コンテナの接続・切断 | コンテナの再起動が必要 | 実行中のコンテナに対して可能 |
+| ネットワークの分離 | すべてのコンテナが同じネットワーク | ネットワークごとに分離 |
 
 ---
 
-## コンテナの通信フロー
+## [コンテナの通信フロー](#container-communication-flow) {#container-communication-flow}
 
-### コンテナから外部への通信
+### [コンテナから外部への通信](#container-to-external) {#container-to-external}
 
 コンテナから外部の Web サイトにアクセスする場合の通信フローです
 
@@ -255,7 +258,7 @@ docker network create my-network
 
 NAT により、コンテナからのパケットの送信元アドレスがホストの IP アドレスに変換され、外部と通信できるようになります
 
-### 外部からコンテナへの通信
+### [外部からコンテナへの通信](#external-to-container) {#external-to-container}
 
 外部からコンテナに直接アクセスするには、<strong>ポートマッピング</strong>が必要です
 
@@ -263,13 +266,13 @@ NAT により、コンテナからのパケットの送信元アドレスがホ�
 
 ---
 
-## ポートマッピング
+## [ポートマッピング](#port-mapping) {#port-mapping}
 
 コンテナは独自の Network namespace を持つため、コンテナ内のポートにはそのままではホスト外部からアクセスできません
 
 <strong>ポートマッピング</strong>は、ホストの特定のポートをコンテナのポートに転送する仕組みです
 
-### ポートマッピングの設定
+### [ポートマッピングの設定](#configuring-port-mapping) {#configuring-port-mapping}
 
 ```
 docker run -p 8080:80 nginx
@@ -279,7 +282,7 @@ docker run -p 8080:80 nginx
 
 外部からホストの 8080 番ポートにアクセスすると、そのリクエストはコンテナの 80 番ポートに転送されます
 
-### 動作の仕組み
+### [動作の仕組み](#operation-mechanism) {#operation-mechanism}
 
 ```
 外部クライアント
@@ -300,21 +303,22 @@ Docker はコンテナ起動時に、ホストの iptables（または nftables�
 
 このルールが、ホストのポート 8080 に届いたパケットの宛先をコンテナの IP アドレスとポートに書き換えます（<strong>DNAT</strong>: Destination NAT）
 
-### よく使われるポートマッピングの形式
+### [よく使われるポートマッピングの形式](#port-mapping-formats) {#port-mapping-formats}
 
-| 形式                   | 説明                                             |
+{: .labeled}
+| 形式 | 説明 |
 | ---------------------- | ------------------------------------------------ |
-| `-p 8080:80`           | ホストの 8080 をコンテナの 80 に転送             |
-| `-p 80`                | ホストのランダムなポートをコンテナの 80 に転送   |
+| `-p 8080:80` | ホストの 8080 をコンテナの 80 に転送 |
+| `-p 80` | ホストのランダムなポートをコンテナの 80 に転送 |
 | `-p 127.0.0.1:8080:80` | ローカルホストの 8080 のみをコンテナの 80 に転送 |
 
 ---
 
-## コンテナ間通信
+## [コンテナ間通信](#inter-container-communication) {#inter-container-communication}
 
 同じ bridge ネットワークに接続されたコンテナは、互いに通信できます
 
-### IP アドレスによる通信
+### [IP アドレスによる通信](#ip-address-communication) {#ip-address-communication}
 
 同一 bridge 上のコンテナは、IP アドレスを指定して直接通信できます
 
@@ -324,7 +328,7 @@ Docker はコンテナ起動時に、ホストの iptables（または nftables�
 
 bridge がレイヤ 2 スイッチとして動作し、パケットを転送します
 
-### DNS によるコンテナ名解決
+### [DNS によるコンテナ名解決](#dns-container-name-resolution) {#dns-container-name-resolution}
 
 ユーザー定義 bridge では、コンテナ名で通信できます
 
@@ -338,7 +342,7 @@ docker run --name app --network my-network myapp
 
 Docker がコンテナ用の<strong>内部 DNS サーバー</strong>（127.0.0.11）を提供し、コンテナ名を IP アドレスに解決します
 
-### 異なるネットワーク間の分離
+### [異なるネットワーク間の分離](#network-isolation) {#network-isolation}
 
 異なる bridge ネットワークに接続されたコンテナは、デフォルトでは互いに通信できません
 
@@ -355,18 +359,19 @@ my-network-1             my-network-2
 
 ---
 
-## ネットワークドライバの種類
+## [ネットワークドライバの種類](#network-driver-types) {#network-driver-types}
 
 Docker はさまざまなネットワークドライバを提供しています
 
-| ドライバ | 説明                                                 | 用途                            |
+{: .labeled}
+| ドライバ | 説明 | 用途 |
 | -------- | ---------------------------------------------------- | ------------------------------- |
-| bridge   | 仮想ブリッジで複数のコンテナを接続する（デフォルト） | 同一ホスト上のコンテナ間通信    |
-| host     | コンテナがホストのネットワークスタックを直接使用する | ネットワーク性能が必要な場合    |
-| none     | ネットワークを無効にする                             | ネットワーク不要なコンテナ      |
-| overlay  | 複数のホストにまたがるネットワークを作成する         | Docker Swarm や Kubernetes 環境 |
+| bridge | 仮想ブリッジで複数のコンテナを接続する（デフォルト） | 同一ホスト上のコンテナ間通信 |
+| host | コンテナがホストのネットワークスタックを直接使用する | ネットワーク性能が必要な場合 |
+| none | ネットワークを無効にする | ネットワーク不要なコンテナ |
+| overlay | 複数のホストにまたがるネットワークを作成する | Docker Swarm や Kubernetes 環境 |
 
-### host ドライバ
+### [host ドライバ](#host-driver) {#host-driver}
 
 ```
 docker run --network host nginx
@@ -378,7 +383,7 @@ host ドライバを使うと、コンテナは Network namespace を作成し�
 
 ポートマッピングは不要ですが、コンテナのネットワーク隔離がなくなります
 
-### none ドライバ
+### [none ドライバ](#none-driver) {#none-driver}
 
 ```
 docker run --network none myapp
@@ -390,7 +395,7 @@ none ドライバを使うと、コンテナにはループバックインター
 
 ---
 
-## 次のトピックへ
+## [次のトピックへ](#next-topic) {#next-topic}
 
 このトピックでは、以下のことを学びました
 
@@ -406,62 +411,63 @@ none ドライバを使うと、コンテナにはループバックインター
 
 コンテナのファイルシステムは一時的（ephemeral）であり、コンテナを削除するとデータも消えてしまいます
 
-次のトピック [05-storage](./05-storage.md) では、<strong>コンテナのストレージ</strong>を学びます
+次のトピック [05-storage](../05-storage/) では、<strong>コンテナのストレージ</strong>を学びます
 
 ボリューム、バインドマウント、ストレージドライバの仕組みを理解することで、コンテナでデータを永続化する方法が分かります
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語                               | 説明                                                                                         |
+{: .labeled}
+| 用語 | 説明 |
 | ---------------------------------- | -------------------------------------------------------------------------------------------- |
-| Network namespace                  | ネットワークスタック全体（インターフェース、IP、ポート、ルーティング）を隔離するカーネル機能 |
-| veth ペア                          | ペアになった仮想ネットワークインターフェース。一方に送ったパケットがもう一方で受信される     |
-| bridge                             | 複数のネットワークインターフェースを接続する仮想スイッチ                                     |
-| docker0                            | Docker がデフォルトで作成する bridge                                                         |
-| デフォルトゲートウェイ             | パケットの送信先が不明な場合にパケットを送るルーター                                         |
-| ユーザー定義 bridge                | ユーザーが `docker network create` で作成した bridge                                         |
-| ポートマッピング                   | ホストのポートをコンテナのポートに転送する仕組み                                             |
-| NAT（Network Address Translation） | パケットの送信元または宛先 IP アドレスを変換する技術                                         |
-| DNAT（Destination NAT）            | パケットの宛先アドレスを変換する NAT の一種。ポートマッピングの実現に使われる                |
-| iptables                           | Linux カーネルのパケットフィルタリングフレームワーク                                         |
-| nftables                           | iptables の後継となるパケットフィルタリングフレームワーク                                    |
-| 内部 DNS サーバー                  | Docker がユーザー定義 bridge で提供する DNS サーバー（127.0.0.11）                           |
-| host ドライバ                      | コンテナがホストのネットワークスタックを直接使用するネットワークドライバ                     |
-| none ドライバ                      | コンテナのネットワークを無効にするネットワークドライバ                                       |
-| overlay ドライバ                   | 複数のホストにまたがるネットワークを作成するネットワークドライバ                             |
-| ループバックインターフェース（lo） | 自分自身への通信に使う仮想ネットワークインターフェース（127.0.0.1）                          |
+| Network namespace | ネットワークスタック全体（インターフェース、IP、ポート、ルーティング）を隔離するカーネル機能 |
+| veth ペア | ペアになった仮想ネットワークインターフェース。一方に送ったパケットがもう一方で受信される |
+| bridge | 複数のネットワークインターフェースを接続する仮想スイッチ |
+| docker0 | Docker がデフォルトで作成する bridge |
+| デフォルトゲートウェイ | パケットの送信先が不明な場合にパケットを送るルーター |
+| ユーザー定義 bridge | ユーザーが `docker network create` で作成した bridge |
+| ポートマッピング | ホストのポートをコンテナのポートに転送する仕組み |
+| NAT（Network Address Translation） | パケットの送信元または宛先 IP アドレスを変換する技術 |
+| DNAT（Destination NAT） | パケットの宛先アドレスを変換する NAT の一種。ポートマッピングの実現に使われる |
+| iptables | Linux カーネルのパケットフィルタリングフレームワーク |
+| nftables | iptables の後継となるパケットフィルタリングフレームワーク |
+| 内部 DNS サーバー | Docker がユーザー定義 bridge で提供する DNS サーバー（127.0.0.11） |
+| host ドライバ | コンテナがホストのネットワークスタックを直接使用するネットワークドライバ |
+| none ドライバ | コンテナのネットワークを無効にするネットワークドライバ |
+| overlay ドライバ | 複数のホストにまたがるネットワークを作成するネットワークドライバ |
+| ループバックインターフェース（lo） | 自分自身への通信に使う仮想ネットワークインターフェース（127.0.0.1） |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>namespace</strong>
 
-- [namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/namespaces.7.html)
+- [namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/namespaces.7.html){:target="\_blank"}
   - Network namespace を含む Linux namespace の概要
 
 <strong>veth</strong>
 
-- [veth(4) - Linux manual page](https://man7.org/linux/man-pages/man4/veth.4.html)
+- [veth(4) - Linux manual page](https://man7.org/linux/man-pages/man4/veth.4.html){:target="\_blank"}
   - 仮想イーサネットデバイスペアの仕組み
 
 <strong>ネットワーク管理</strong>
 
-- [ip-link(8) - Linux manual page](https://man7.org/linux/man-pages/man8/ip-link.8.html)
+- [ip-link(8) - Linux manual page](https://man7.org/linux/man-pages/man8/ip-link.8.html){:target="\_blank"}
   - ネットワークインターフェースの管理コマンド
-- [bridge(8) - Linux manual page](https://man7.org/linux/man-pages/man8/bridge.8.html)
+- [bridge(8) - Linux manual page](https://man7.org/linux/man-pages/man8/bridge.8.html){:target="\_blank"}
   - bridge の管理コマンド
 
 <strong>パケットフィルタリング</strong>
 
-- [iptables(8) - Linux manual page](https://man7.org/linux/man-pages/man8/iptables.8.html)
+- [iptables(8) - Linux manual page](https://man7.org/linux/man-pages/man8/iptables.8.html){:target="\_blank"}
   - iptables によるパケットフィルタリングとNAT
 
 <strong>Docker ネットワーク</strong>
 
-- [Docker networking overview](https://docs.docker.com/engine/network/)
+- [Docker networking overview](https://docs.docker.com/engine/network/){:target="\_blank"}
   - Docker のネットワークドライバとネットワーク設定

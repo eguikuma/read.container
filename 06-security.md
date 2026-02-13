@@ -1,18 +1,19 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: セキュリティ
+---
 
-# 06-security：セキュリティ
+# [06-security：セキュリティ](#container-security) {#container-security}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
 ここまでのトピックで、コンテナの主要な構成要素を学びました
 
-- [01-container](./01-container.md)：namespace と cgroup がコンテナを作る
-- [02-oci-and-runtime](./02-oci-and-runtime.md)：ランタイムがコンテナを管理する
-- [03-image](./03-image.md)：イメージがコンテナの中身を提供する
-- [04-network](./04-network.md)：ネットワークでコンテナが通信する
-- [05-storage](./05-storage.md)：ストレージでデータを永続化する
+- [01-container](../01-container/)：namespace と cgroup がコンテナを作る
+- [02-oci-and-runtime](../02-oci-and-runtime/)：ランタイムがコンテナを管理する
+- [03-image](../03-image/)：イメージがコンテナの中身を提供する
+- [04-network](../04-network/)：ネットワークでコンテナが通信する
+- [05-storage](../05-storage/)：ストレージでデータを永続化する
 
 しかし、重要な問題がまだ残っています
 
@@ -28,7 +29,7 @@ namespace と cgroup だけでは、コンテナの安全性は十分とは言�
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 コンテナのセキュリティを「建物のセキュリティ」に例えてみましょう
 
@@ -64,7 +65,7 @@ namespace と cgroup だけでは、コンテナの安全性は十分とは言�
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -92,56 +93,58 @@ namespace と cgroup だけでは、コンテナの安全性は十分とは言�
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [なぜ namespace と cgroup だけでは不十分か](#なぜ-namespace-と-cgroup-だけでは不十分か)
+1. [なぜ namespace と cgroup だけでは不十分か](#why-namespace-and-cgroup-insufficient)
 2. [Linux capabilities](#linux-capabilities)
 3. [seccomp](#seccomp)
-4. [AppArmor と SELinux](#apparmor-と-selinux)
-5. [rootless コンテナ](#rootless-コンテナ)
-6. [多層防御](#多層防御)
-7. [次のトピックへ](#次のトピックへ)
-8. [用語集](#用語集)
-9. [参考資料](#参考資料)
+4. [AppArmor と SELinux](#apparmor-and-selinux)
+5. [rootless コンテナ](#rootless-container)
+6. [多層防御](#defense-in-depth)
+7. [次のトピックへ](#next-topic)
+8. [用語集](#glossary)
+9. [参考資料](#references)
 
 ---
 
-## なぜ namespace と cgroup だけでは不十分か
+## [なぜ namespace と cgroup だけでは不十分か](#why-namespace-and-cgroup-insufficient) {#why-namespace-and-cgroup-insufficient}
 
 namespace はプロセスが「何を見えるか」を制限し、cgroup は「どれだけリソースを使えるか」を制限します
 
 しかし、以下のリスクはこれらだけでは防げません
 
-| リスク               | 説明                                                                                                                       |
+{: .labeled}
+| リスク | 説明 |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| カーネルの脆弱性     | コンテナのプロセスはホストのカーネルに直接システムコールを発行する。カーネルの脆弱性を悪用してホストに侵入する可能性がある |
-| 過剰な権限           | コンテナ内で root として動作するプロセスは、namespace 外の操作を試みることができる                                         |
-| 危険なシステムコール | すべてのシステムコールが使えると、カーネルモジュールのロードなど危険な操作が可能になる                                     |
+| カーネルの脆弱性 | コンテナのプロセスはホストのカーネルに直接システムコールを発行する。カーネルの脆弱性を悪用してホストに侵入する可能性がある |
+| 過剰な権限 | コンテナ内で root として動作するプロセスは、namespace 外の操作を試みることができる |
+| 危険なシステムコール | すべてのシステムコールが使えると、カーネルモジュールのロードなど危険な操作が可能になる |
 
 コンテナのセキュリティは、namespace と cgroup に<strong>追加の制限</strong>を重ねることで強化されます
 
 ---
 
-## Linux capabilities
+## [Linux capabilities](#linux-capabilities) {#linux-capabilities}
 
 伝統的な UNIX では、プロセスの権限は「root（すべての権限）」か「一般ユーザー（制限された権限）」の二択でした
 
 <strong>Linux capabilities</strong> は、root の権限を<strong>細かく分割</strong>し、プロセスに必要な権限だけを付与する仕組みです
 
-### capabilities の例
+### [capabilities の例](#capabilities-examples) {#capabilities-examples}
 
-| capability           | 許可する操作                                                   |
+{: .labeled}
+| capability | 許可する操作 |
 | -------------------- | -------------------------------------------------------------- |
-| CAP_NET_BIND_SERVICE | 1024 番未満の特権ポートにバインドする                          |
-| CAP_NET_ADMIN        | ネットワーク設定を変更する（ルーティング、ファイアウォール等） |
-| CAP_SYS_ADMIN        | さまざまな管理操作（マウント、namespace 操作等）               |
-| CAP_SYS_PTRACE       | 他のプロセスをトレース（デバッグ）する                         |
-| CAP_CHOWN            | ファイルの所有者を変更する                                     |
-| CAP_DAC_OVERRIDE     | ファイルのアクセス権限チェックをバイパスする                   |
-| CAP_SYS_MODULE       | カーネルモジュールをロード・アンロードする                     |
-| CAP_SYS_BOOT         | システムを再起動する                                           |
+| CAP_NET_BIND_SERVICE | 1024 番未満の特権ポートにバインドする |
+| CAP_NET_ADMIN | ネットワーク設定を変更する（ルーティング、ファイアウォール等） |
+| CAP_SYS_ADMIN | さまざまな管理操作（マウント、namespace 操作等） |
+| CAP_SYS_PTRACE | 他のプロセスをトレース（デバッグ）する |
+| CAP_CHOWN | ファイルの所有者を変更する |
+| CAP_DAC_OVERRIDE | ファイルのアクセス権限チェックをバイパスする |
+| CAP_SYS_MODULE | カーネルモジュールをロード・アンロードする |
+| CAP_SYS_BOOT | システムを再起動する |
 
-### Docker のデフォルト capabilities
+### [Docker のデフォルト capabilities](#docker-default-capabilities) {#docker-default-capabilities}
 
 Docker はコンテナ起動時に、root 権限から<strong>不要な capabilities を削除</strong>します
 
@@ -149,23 +152,25 @@ Docker はコンテナ起動時に、root 権限から<strong>不要な capabili
 
 <strong>デフォルトで許可される capabilities（一部）</strong>
 
-| capability              | 理由                                                   |
+{: .labeled}
+| capability | 理由 |
 | ----------------------- | ------------------------------------------------------ |
-| CAP_CHOWN               | ファイル所有権の変更（アプリケーションの初期化に必要） |
-| CAP_NET_BIND_SERVICE    | 特権ポートへのバインド（Web サーバー等に必要）         |
-| CAP_SETUID / CAP_SETGID | UID / GID の変更（プロセスの権限降格に必要）           |
-| CAP_KILL                | プロセスへのシグナル送信                               |
+| CAP_CHOWN | ファイル所有権の変更（アプリケーションの初期化に必要） |
+| CAP_NET_BIND_SERVICE | 特権ポートへのバインド（Web サーバー等に必要） |
+| CAP_SETUID / CAP_SETGID | UID / GID の変更（プロセスの権限降格に必要） |
+| CAP_KILL | プロセスへのシグナル送信 |
 
 <strong>デフォルトで拒否される capabilities（一部）</strong>
 
-| capability     | 理由                                                   |
+{: .labeled}
+| capability | 理由 |
 | -------------- | ------------------------------------------------------ |
-| CAP_SYS_ADMIN  | 強力すぎる（マウント、namespace 操作、多数の管理機能） |
-| CAP_SYS_MODULE | カーネルモジュールのロードはホストに影響する           |
-| CAP_SYS_BOOT   | ホストの再起動が可能になる                             |
-| CAP_NET_ADMIN  | ホストのネットワーク設定を変更できる                   |
+| CAP_SYS_ADMIN | 強力すぎる（マウント、namespace 操作、多数の管理機能） |
+| CAP_SYS_MODULE | カーネルモジュールのロードはホストに影響する |
+| CAP_SYS_BOOT | ホストの再起動が可能になる |
+| CAP_NET_ADMIN | ホストのネットワーク設定を変更できる |
 
-### capabilities の追加と削除
+### [capabilities の追加と削除](#adding-and-removing-capabilities) {#adding-and-removing-capabilities}
 
 ```
 docker run --cap-drop ALL --cap-add NET_BIND_SERVICE nginx
@@ -177,11 +182,11 @@ docker run --cap-drop ALL --cap-add NET_BIND_SERVICE nginx
 
 ---
 
-## seccomp
+## [seccomp](#seccomp) {#seccomp}
 
 <strong>seccomp</strong>（Secure Computing Mode）は、プロセスが呼び出せるシステムコールを<strong>フィルタリング</strong>するカーネル機能です
 
-### なぜシステムコールのフィルタリングが必要か
+### [なぜシステムコールのフィルタリングが必要か](#why-syscall-filtering) {#why-syscall-filtering}
 
 Linux カーネルには 300 以上のシステムコールがあります
 
@@ -191,19 +196,20 @@ Linux カーネルには 300 以上のシステムコールがあります
 
 seccomp を使えば、コンテナが呼び出せるシステムコールを必要なものだけに制限できます
 
-### Docker のデフォルト seccomp プロファイル
+### [Docker のデフォルト seccomp プロファイル](#docker-default-seccomp-profile) {#docker-default-seccomp-profile}
 
 Docker はデフォルトで seccomp プロファイルを適用し、危険なシステムコールをブロックします
 
 <strong>ブロックされるシステムコールの例</strong>
 
-| システムコール              | ブロックの理由                         |
+{: .labeled}
+| システムコール | ブロックの理由 |
 | --------------------------- | -------------------------------------- |
-| mount / umount              | ホストのファイルシステムを操作できる   |
-| reboot                      | ホストを再起動できる                   |
+| mount / umount | ホストのファイルシステムを操作できる |
+| reboot | ホストを再起動できる |
 | init_module / delete_module | カーネルモジュールをロード・削除できる |
-| clock_settime               | ホストの時刻を変更できる               |
-| swapon / swapoff            | ホストのスワップ設定を変更できる       |
+| clock_settime | ホストの時刻を変更できる |
+| swapon / swapoff | ホストのスワップ設定を変更できる |
 
 ※ 一部のシステムコールは capabilities との組み合わせで許可・拒否が決まります
 
@@ -211,15 +217,16 @@ Docker はデフォルトで seccomp プロファイルを適用し、危険な�
 
 <strong>許可されるシステムコールの例</strong>
 
-| システムコール   | 用途                         |
+{: .labeled}
+| システムコール | 用途 |
 | ---------------- | ---------------------------- |
-| read / write     | ファイルの読み書き           |
-| open / close     | ファイルのオープン・クローズ |
-| socket / connect | ネットワーク通信             |
-| fork / exec      | プロセスの作成               |
-| mmap / brk       | メモリ管理                   |
+| read / write | ファイルの読み書き |
+| open / close | ファイルのオープン・クローズ |
+| socket / connect | ネットワーク通信 |
+| fork / exec | プロセスの作成 |
+| mmap / brk | メモリ管理 |
 
-### seccomp と capabilities の違い
+### [seccomp と capabilities の違い](#seccomp-vs-capabilities) {#seccomp-vs-capabilities}
 
 |          | capabilities                       | seccomp                                  |
 | -------- | ---------------------------------- | ---------------------------------------- |
@@ -233,7 +240,7 @@ capabilities は「何をする権限があるか」を制御し、seccomp は�
 
 ---
 
-## AppArmor と SELinux
+## [AppArmor と SELinux](#apparmor-and-selinux) {#apparmor-and-selinux}
 
 <strong>AppArmor</strong> と <strong>SELinux</strong> は、Linux カーネルの<strong>強制アクセス制御</strong>（MAC：Mandatory Access Control）機構です
 
@@ -241,7 +248,7 @@ capabilities は「何をする権限があるか」を制御し、seccomp は�
 
 MAC はシステム管理者が定義したポリシーを<strong>強制的に</strong>適用し、root であっても回避できません
 
-### AppArmor
+### [AppArmor](#apparmor) {#apparmor}
 
 AppArmor は<strong>パスベース</strong>のアクセス制御を行います
 
@@ -249,7 +256,7 @@ AppArmor は<strong>パスベース</strong>のアクセス制御を行います
 
 Docker は Ubuntu 環境ではデフォルトで AppArmor プロファイルを適用します
 
-### SELinux
+### [SELinux](#selinux) {#selinux}
 
 SELinux は<strong>ラベルベース</strong>のアクセス制御を行います
 
@@ -257,20 +264,21 @@ SELinux は<strong>ラベルベース</strong>のアクセス制御を行いま�
 
 Red Hat 系のディストリビューション（RHEL、Fedora、CentOS）で標準的に使われています
 
-### コンテナとの関係
+### [コンテナとの関係](#container-relationship) {#container-relationship}
 
-| 機構     | Docker での扱い                                                             |
+{: .labeled}
+| 機構 | Docker での扱い |
 | -------- | --------------------------------------------------------------------------- |
 | AppArmor | Ubuntu 環境でデフォルト適用。コンテナの動作を制限するプロファイルを自動適用 |
-| SELinux  | Red Hat 系環境で利用可能。コンテナのファイルアクセスをラベルで制御          |
+| SELinux | Red Hat 系環境で利用可能。コンテナのファイルアクセスをラベルで制御 |
 
 ---
 
-## rootless コンテナ
+## [rootless コンテナ](#rootless-container) {#rootless-container}
 
 <strong>rootless コンテナ</strong>は、root 権限を一切使わずにコンテナを実行する仕組みです
 
-### なぜ rootless が重要か
+### [なぜ rootless が重要か](#why-rootless) {#why-rootless}
 
 従来の Docker では、Docker デーモン（dockerd）が root 権限で動作していました
 
@@ -288,7 +296,7 @@ Red Hat 系のディストリビューション（RHEL、Fedora、CentOS）で�
 - Docker ソケット（/var/run/docker.sock）へのアクセスは、事実上の root 権限と同等
 - コンテナが namespace を脱出した場合、ホストの root 権限を取得できる
 
-### rootless の仕組み
+### [rootless の仕組み](#rootless-mechanism) {#rootless-mechanism}
 
 rootless コンテナは <strong>User namespace</strong> を使って、一般ユーザーの権限でコンテナを実行します
 
@@ -301,13 +309,13 @@ rootless の構成：
       └── コンテナ B（コンテナ内 root = ホストの UID 100000）
 ```
 
-[01-container](./01-container.md) で学んだ User namespace により、コンテナ内の root（UID 0）がホストの一般ユーザー（例: UID 100000）にマッピングされます
+[01-container](../01-container/) で学んだ User namespace により、コンテナ内の root（UID 0）がホストの一般ユーザー（例: UID 100000）にマッピングされます
 
 コンテナ内では root として動作しているように見えますが、ホストから見ると一般ユーザーです
 
 コンテナが namespace を脱出しても、ホストでは一般ユーザーの権限しか持ちません
 
-### Docker と Podman の rootless 対応
+### [Docker と Podman の rootless 対応](#docker-and-podman-rootless) {#docker-and-podman-rootless}
 
 |                    | Docker                                                     | Podman                                                     |
 | ------------------ | ---------------------------------------------------------- | ---------------------------------------------------------- |
@@ -316,25 +324,26 @@ rootless の構成：
 | ネットワーク       | slirp4netns または pasta を使用                            | slirp4netns または pasta を使用                            |
 | ストレージドライバ | fuse-overlayfs（カーネル 5.11 以降は overlay2 も利用可能） | fuse-overlayfs（カーネル 5.11 以降は overlay2 も利用可能） |
 
-### rootless の制限
+### [rootless の制限](#rootless-limitations) {#rootless-limitations}
 
 rootless コンテナにはいくつかの制限があります
 
-| 制限                                          | 理由                                                                                                                   |
+{: .labeled}
+| 制限 | 理由 |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 特権ポート（1024 未満）を直接バインドできない | 一般ユーザーには特権ポートをバインドする権限がない                                                                     |
-| 一部のネットワーク機能が制限される            | iptables の操作に root 権限が必要                                                                                      |
-| ping が動作しない場合がある                   | raw ソケットの作成に権限が必要（ただし多くの最近のディストリビューションでは `ping_group_range` の設定により動作する） |
+| 特権ポート（1024 未満）を直接バインドできない | 一般ユーザーには特権ポートをバインドする権限がない |
+| 一部のネットワーク機能が制限される | iptables の操作に root 権限が必要 |
+| ping が動作しない場合がある | raw ソケットの作成に権限が必要（ただし多くの最近のディストリビューションでは `ping_group_range` の設定により動作する） |
 
 ---
 
-## 多層防御
+## [多層防御](#defense-in-depth) {#defense-in-depth}
 
 コンテナのセキュリティは、単一の仕組みに依存するのではなく、<strong>複数の仕組みを重ねる</strong>ことで実現されます
 
 この考え方を<strong>多層防御</strong>（Defense in Depth）と呼びます
 
-### コンテナのセキュリティレイヤ
+### [コンテナのセキュリティレイヤ](#container-security-layers) {#container-security-layers}
 
 ```
 ┌─────────────────────────────────────────┐
@@ -354,16 +363,17 @@ rootless コンテナにはいくつかの制限があります
 
 各レイヤの役割をまとめると以下のようになります
 
-| レイヤ | 仕組み             | 防ぐもの                                       |
+{: .labeled}
+| レイヤ | 仕組み | 防ぐもの |
 | ------ | ------------------ | ---------------------------------------------- |
-| 1      | namespace          | プロセス間の相互干渉                           |
-| 2      | cgroup             | リソースの枯渇（DoS）                          |
-| 3      | capabilities       | 不要な root 権限の行使                         |
-| 4      | seccomp            | 危険なシステムコールの呼び出し                 |
-| 5      | AppArmor / SELinux | ポリシー外のファイルアクセスやネットワーク操作 |
-| 6      | rootless           | ホストの root 権限の取得                       |
+| 1 | namespace | プロセス間の相互干渉 |
+| 2 | cgroup | リソースの枯渇（DoS） |
+| 3 | capabilities | 不要な root 権限の行使 |
+| 4 | seccomp | 危険なシステムコールの呼び出し |
+| 5 | AppArmor / SELinux | ポリシー外のファイルアクセスやネットワーク操作 |
+| 6 | rootless | ホストの root 権限の取得 |
 
-### なぜ多層防御が必要か
+### [なぜ多層防御が必要か](#why-defense-in-depth) {#why-defense-in-depth}
 
 セキュリティの世界では「完璧な防御は存在しない」が前提です
 
@@ -377,7 +387,7 @@ seccomp でシステムコールがフィルタリングされていれば、カ
 
 ---
 
-## 次のトピックへ
+## [次のトピックへ](#next-topic) {#next-topic}
 
 このトピックでは、以下のことを学びました
 
@@ -392,61 +402,62 @@ seccomp でシステムコールがフィルタリングされていれば、カ
 
 最後のトピックでは、これまでの知識を統合して、<strong>複数のコンテナを組み合わせる</strong>方法を学びます
 
-次のトピック [07-compose](./07-compose.md) では、<strong>Docker Compose</strong> を使った複数コンテナの定義と管理を学びます
+次のトピック [07-compose](../07-compose/) では、<strong>Docker Compose</strong> を使った複数コンテナの定義と管理を学びます
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語                    | 説明                                                                                                 |
+{: .labeled}
+| 用語 | 説明 |
 | ----------------------- | ---------------------------------------------------------------------------------------------------- |
-| Linux capabilities      | root の権限を約 40 種類に細分化し、プロセスに必要な権限だけを付与する仕組み                          |
-| CAP_SYS_ADMIN           | 最も強力な capability。マウント、namespace 操作など多数の管理機能を許可する                          |
-| CAP_NET_BIND_SERVICE    | 1024 番未満の特権ポートにバインドすることを許可する capability                                       |
-| 最小権限の原則          | プロセスに必要最小限の権限だけを付与するセキュリティ原則                                             |
-| seccomp                 | プロセスが呼び出せるシステムコールをフィルタリングするカーネル機能                                   |
-| seccomp プロファイル    | 許可・拒否するシステムコールを定義した設定                                                           |
-| AppArmor                | パスベースの強制アクセス制御（MAC）機構。Ubuntu で標準的に使われる                                   |
-| SELinux                 | ラベルベースの強制アクセス制御（MAC）機構。Red Hat 系で標準的に使われる                              |
-| 強制アクセス制御（MAC） | システム管理者が定義したポリシーを強制的に適用するアクセス制御。root でも回避できない                |
-| 任意アクセス制御（DAC） | ファイルの所有者が権限を設定する従来のアクセス制御                                                   |
-| rootless コンテナ       | User namespace を使い、root 権限なしでコンテナを実行する仕組み                                       |
-| User namespace          | UID / GID のマッピングを提供する namespace。コンテナ内の root をホストの一般ユーザーにマッピングする |
-| slirp4netns             | rootless コンテナ向けのユーザー空間ネットワークスタック                                              |
-| pasta                   | rootless コンテナ向けのネットワーク接続ツール                                                        |
-| fuse-overlayfs          | rootless コンテナ向けのストレージドライバ。ユーザー権限で overlay filesystem を使用する              |
-| 多層防御                | 複数のセキュリティ機構を重ねて、1つが突破されても他で防ぐセキュリティ戦略                            |
-| 攻撃面                  | 攻撃者が悪用できるシステムの表面積。小さいほど安全                                                   |
+| Linux capabilities | root の権限を約 40 種類に細分化し、プロセスに必要な権限だけを付与する仕組み |
+| CAP_SYS_ADMIN | 最も強力な capability。マウント、namespace 操作など多数の管理機能を許可する |
+| CAP_NET_BIND_SERVICE | 1024 番未満の特権ポートにバインドすることを許可する capability |
+| 最小権限の原則 | プロセスに必要最小限の権限だけを付与するセキュリティ原則 |
+| seccomp | プロセスが呼び出せるシステムコールをフィルタリングするカーネル機能 |
+| seccomp プロファイル | 許可・拒否するシステムコールを定義した設定 |
+| AppArmor | パスベースの強制アクセス制御（MAC）機構。Ubuntu で標準的に使われる |
+| SELinux | ラベルベースの強制アクセス制御（MAC）機構。Red Hat 系で標準的に使われる |
+| 強制アクセス制御（MAC） | システム管理者が定義したポリシーを強制的に適用するアクセス制御。root でも回避できない |
+| 任意アクセス制御（DAC） | ファイルの所有者が権限を設定する従来のアクセス制御 |
+| rootless コンテナ | User namespace を使い、root 権限なしでコンテナを実行する仕組み |
+| User namespace | UID / GID のマッピングを提供する namespace。コンテナ内の root をホストの一般ユーザーにマッピングする |
+| slirp4netns | rootless コンテナ向けのユーザー空間ネットワークスタック |
+| pasta | rootless コンテナ向けのネットワーク接続ツール |
+| fuse-overlayfs | rootless コンテナ向けのストレージドライバ。ユーザー権限で overlay filesystem を使用する |
+| 多層防御 | 複数のセキュリティ機構を重ねて、1つが突破されても他で防ぐセキュリティ戦略 |
+| 攻撃面 | 攻撃者が悪用できるシステムの表面積。小さいほど安全 |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>capabilities</strong>
 
-- [capabilities(7) - Linux manual page](https://man7.org/linux/man-pages/man7/capabilities.7.html)
+- [capabilities(7) - Linux manual page](https://man7.org/linux/man-pages/man7/capabilities.7.html){:target="\_blank"}
   - Linux capabilities の全一覧と動作の説明
 
 <strong>seccomp</strong>
 
-- [seccomp(2) - Linux manual page](https://man7.org/linux/man-pages/man2/seccomp.2.html)
+- [seccomp(2) - Linux manual page](https://man7.org/linux/man-pages/man2/seccomp.2.html){:target="\_blank"}
   - seccomp システムコールフィルタリングの仕組み
 
 <strong>User namespace</strong>
 
-- [user_namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/user_namespaces.7.html)
+- [user_namespaces(7) - Linux manual page](https://man7.org/linux/man-pages/man7/user_namespaces.7.html){:target="\_blank"}
   - User namespace と UID / GID マッピングの仕組み
 
 <strong>Docker セキュリティ</strong>
 
-- [Docker security](https://docs.docker.com/engine/security/)
+- [Docker security](https://docs.docker.com/engine/security/){:target="\_blank"}
   - Docker のセキュリティ機能（capabilities、seccomp、AppArmor）
-- [Docker Engine security](https://docs.docker.com/engine/security/#linux-kernel-capabilities)
+- [Docker Engine security](https://docs.docker.com/engine/security/#linux-kernel-capabilities){:target="\_blank"}
   - Docker のデフォルト capabilities とセキュリティ設定
 
 <strong>Podman rootless</strong>
 
-- [Podman rootless](https://docs.podman.io/en/latest/markdown/podman.1.html)
+- [Podman rootless](https://docs.podman.io/en/latest/markdown/podman.1.html){:target="\_blank"}
   - Podman の rootless モードの仕組みと制限

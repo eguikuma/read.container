@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: OCI とランタイム
+---
 
-# 02-oci-and-runtime：OCI とランタイム
+# [02-oci-and-runtime：OCI とランタイム](#oci-and-runtime) {#oci-and-runtime}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[01-container](./01-container.md) では、コンテナの正体が「namespace で隔離され、cgroup で制限されたプロセス」であることを学びました
+[01-container](../01-container/) では、コンテナの正体が「namespace で隔離され、cgroup で制限されたプロセス」であることを学びました
 
 そして、namespace と cgroup だけではコンテナにならないことも学びました
 
@@ -31,7 +32,7 @@ Docker、Podman、containerd、runc など、さまざまなソフトウェア�
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 コンテナランタイムの階層構造を「建設業界」に例えてみましょう
 
@@ -65,7 +66,7 @@ Docker は大きな会社（デーモン常駐型）、Podman は小さな工務
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -91,29 +92,29 @@ Docker は大きな会社（デーモン常駐型）、Podman は小さな工務
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [OCI とは何か](#oci-とは何か)
-2. [OCI Runtime Specification](#oci-runtime-specification)
-3. [OCI Image Specification と Distribution Specification](#oci-image-specification-と-distribution-specification)
-4. [低レベルランタイム：runc](#低レベルランタイムrunc)
-5. [高レベルランタイム：containerd](#高レベルランタイムcontainerd)
-6. [Docker のアーキテクチャ](#docker-のアーキテクチャ)
-7. [Podman のアーキテクチャ](#podman-のアーキテクチャ)
-8. [Docker と Podman の比較](#docker-と-podman-の比較)
-9. [次のトピックへ](#次のトピックへ)
-10. [用語集](#用語集)
-11. [参考資料](#参考資料)
+1. [OCI とは何か](#what-is-oci)
+2. [OCI Runtime Specification](#oci-runtime-spec)
+3. [OCI Image Specification と Distribution Specification](#oci-image-and-distribution-spec)
+4. [低レベルランタイム：runc](#low-level-runtime-runc)
+5. [高レベルランタイム：containerd](#high-level-runtime-containerd)
+6. [Docker のアーキテクチャ](#docker-architecture)
+7. [Podman のアーキテクチャ](#podman-architecture)
+8. [Docker と Podman の比較](#docker-vs-podman)
+9. [次のトピックへ](#next-topic)
+10. [用語集](#glossary)
+11. [参考資料](#references)
 
 ---
 
-## OCI とは何か
+## [OCI とは何か](#what-is-oci) {#what-is-oci}
 
 <strong>OCI</strong>（Open Container Initiative）は、コンテナの標準仕様を策定する組織です
 
 2015 年に Docker 社と CoreOS 社を中心に設立されました
 
-### なぜ標準仕様が必要なのか
+### [なぜ標準仕様が必要なのか](#why-standard-spec) {#why-standard-spec}
 
 コンテナ技術の初期には、Docker が事実上の標準でした
 
@@ -121,27 +122,28 @@ Docker は大きな会社（デーモン常駐型）、Podman は小さな工務
 
 「Docker で作ったコンテナが別のランタイムで動かない」という状況を防ぐために、コンテナの<strong>標準仕様</strong>が必要になりました
 
-### OCI の3つの仕様
+### [OCI の3つの仕様](#oci-three-specs) {#oci-three-specs}
 
 OCI は以下の3つの仕様を策定しています
 
-| 仕様                       | 内容                   | 定義するもの                                 |
+{: .labeled}
+| 仕様 | 内容 | 定義するもの |
 | -------------------------- | ---------------------- | -------------------------------------------- |
-| Runtime Specification      | コンテナの実行方法     | ライフサイクル、設定ファイルの形式、実行環境 |
-| Image Specification        | コンテナイメージの構造 | レイヤ構造、メタデータ、マニフェスト         |
-| Distribution Specification | イメージの配布方法     | レジストリとの通信プロトコル                 |
+| Runtime Specification | コンテナの実行方法 | ライフサイクル、設定ファイルの形式、実行環境 |
+| Image Specification | コンテナイメージの構造 | レイヤ構造、メタデータ、マニフェスト |
+| Distribution Specification | イメージの配布方法 | レジストリとの通信プロトコル |
 
 これらの仕様に準拠していれば、どのランタイムで作ったコンテナでも、どのランタイムで実行できます
 
 ---
 
-## OCI Runtime Specification
+## [OCI Runtime Specification](#oci-runtime-spec) {#oci-runtime-spec}
 
 OCI Runtime Specification は、コンテナの<strong>実行方法</strong>を標準化する仕様です
 
 この仕様は、大きく分けて2つのことを定義しています
 
-### config.json：コンテナの設定ファイル
+### [config.json：コンテナの設定ファイル](#config-json) {#config-json}
 
 コンテナをどのように構成するかを記述する JSON ファイルです
 
@@ -189,34 +191,35 @@ rootfs ディレクトリに、コンテナのファイルシステムが展開�
 
 この例では、PID、Network、Mount、UTS、IPC の 5 つの namespace を作成します
 
-### コンテナのライフサイクル
+### [コンテナのライフサイクル](#container-lifecycle-spec) {#container-lifecycle-spec}
 
 OCI Runtime Specification は、コンテナの状態遷移も定義しています
 
-[01-container](./01-container.md) で学んだライフサイクル（Creating → Created → Running → Stopped）は、この仕様に基づいています
+[01-container](../01-container/) で学んだライフサイクル（Creating → Created → Running → Stopped）は、この仕様に基づいています
 
-| 状態     | 説明                                                 |
+{: .labeled}
+| 状態 | 説明 |
 | -------- | ---------------------------------------------------- |
-| Creating | コンテナの作成中（namespace と cgroup の設定中）     |
-| Created  | コンテナが作成された（プロセスはまだ開始していない） |
-| Running  | コンテナ内のプロセスが実行中                         |
-| Stopped  | コンテナ内のプロセスが終了した                       |
+| Creating | コンテナの作成中（namespace と cgroup の設定中） |
+| Created | コンテナが作成された（プロセスはまだ開始していない） |
+| Running | コンテナ内のプロセスが実行中 |
+| Stopped | コンテナ内のプロセスが終了した |
 
 この標準的なライフサイクルにより、異なるランタイム間で一貫した動作が保証されます
 
 ---
 
-## OCI Image Specification と Distribution Specification
+## [OCI Image Specification と Distribution Specification](#oci-image-and-distribution-spec) {#oci-image-and-distribution-spec}
 
-### OCI Image Specification
+### [OCI Image Specification](#oci-image-spec) {#oci-image-spec}
 
 コンテナイメージの構造を標準化する仕様です
 
 イメージがどのようなレイヤで構成され、どのようなメタデータを持つかを定義しています
 
-この仕様の詳細は [03-image](./03-image.md) で学びます
+この仕様の詳細は [03-image](../03-image/) で学びます
 
-### OCI Distribution Specification
+### [OCI Distribution Specification](#oci-distribution-spec) {#oci-distribution-spec}
 
 コンテナイメージの配布方法を標準化する仕様です
 
@@ -226,13 +229,13 @@ OCI Runtime Specification は、コンテナの状態遷移も定義していま
 
 ---
 
-## 低レベルランタイム：runc
+## [低レベルランタイム：runc](#low-level-runtime-runc) {#low-level-runtime-runc}
 
 <strong>runc</strong> は、OCI Runtime Specification に準拠した<strong>低レベルコンテナランタイム</strong>です
 
 もともと Docker の内部コンポーネントだったものが、OCI プロジェクトとして独立しました
 
-### runc の役割
+### [runc の役割](#runc-role) {#runc-role}
 
 runc は config.json を受け取り、以下の操作を実行します
 
@@ -242,7 +245,7 @@ runc は config.json を受け取り、以下の操作を実行します
 4. セキュリティ設定を適用する（capabilities、seccomp 等）
 5. コンテナ内のプロセスを起動する
 
-### なぜ「低レベル」と呼ばれるのか
+### [なぜ「低レベル」と呼ばれるのか](#why-low-level) {#why-low-level}
 
 runc は<strong>コンテナの実行だけ</strong>を担当します
 
@@ -250,7 +253,7 @@ runc は<strong>コンテナの実行だけ</strong>を担当します
 
 そのため、通常は runc を直接使うことはなく、containerd のような高レベルランタイムから呼び出されます
 
-### runc の動作の流れ
+### [runc の動作の流れ](#runc-operation-flow) {#runc-operation-flow}
 
 ```
 config.json + rootfs ディレクトリ
@@ -270,25 +273,26 @@ config.json + rootfs ディレクトリ
 
 ---
 
-## 高レベルランタイム：containerd
+## [高レベルランタイム：containerd](#high-level-runtime-containerd) {#high-level-runtime-containerd}
 
 <strong>containerd</strong> は、コンテナのライフサイクル全体を管理する<strong>高レベルコンテナランタイム</strong>です
 
 もともと Docker の内部コンポーネントだったものが、独立したプロジェクトとして分離されました
 
-### containerd の役割
+### [containerd の役割](#containerd-role) {#containerd-role}
 
 containerd は、runc が担当しない部分をカバーします
 
-| 機能               | 説明                                                 |
+{: .labeled}
+| 機能 | 説明 |
 | ------------------ | ---------------------------------------------------- |
-| イメージ管理       | イメージの pull / push、レイヤの展開、ストレージ管理 |
-| コンテナ管理       | コンテナの作成、起動、停止、削除                     |
-| タスク管理         | コンテナ内のプロセスの監視と管理                     |
-| スナップショット   | イメージレイヤからルートファイルシステムを準備       |
-| ランタイム呼び出し | runc を呼び出してコンテナを実際に起動                |
+| イメージ管理 | イメージの pull / push、レイヤの展開、ストレージ管理 |
+| コンテナ管理 | コンテナの作成、起動、停止、削除 |
+| タスク管理 | コンテナ内のプロセスの監視と管理 |
+| スナップショット | イメージレイヤからルートファイルシステムを準備 |
+| ランタイム呼び出し | runc を呼び出してコンテナを実際に起動 |
 
-### containerd と runc の関係
+### [containerd と runc の関係](#containerd-and-runc-relationship) {#containerd-and-runc-relationship}
 
 ```
 containerd
@@ -306,7 +310,7 @@ containerd
 
 containerd はイメージの取得からルートファイルシステムの準備までを行い、実際のコンテナ作成は runc に委譲します
 
-### containerd のデーモン
+### [containerd のデーモン](#containerd-daemon) {#containerd-daemon}
 
 containerd は<strong>デーモン</strong>（常駐プロセス）として動作します
 
@@ -314,13 +318,13 @@ gRPC API を提供し、Docker や Kubernetes などの上位ツールからの�
 
 ---
 
-## Docker のアーキテクチャ
+## [Docker のアーキテクチャ](#docker-architecture) {#docker-architecture}
 
 Docker は、最も広く使われているコンテナプラットフォームです
 
 ユーザーが `docker run` と入力してからコンテナが起動するまで、複数のコンポーネントが連携します
 
-### コンポーネントの階層
+### [コンポーネントの階層](#docker-component-hierarchy) {#docker-component-hierarchy}
 
 ```
 ユーザー
@@ -349,7 +353,7 @@ runc
 コンテナ（namespace + cgroup + rootfs）
 ```
 
-### 各コンポーネントの役割
+### [各コンポーネントの役割](#docker-component-roles) {#docker-component-roles}
 
 <strong>Docker CLI</strong>
 
@@ -377,29 +381,30 @@ Docker のメインデーモンです
 
 OCI 仕様に従ってコンテナを作成・実行します
 
-### docker run の流れ
+### [docker run の流れ](#docker-run-flow) {#docker-run-flow}
 
 `docker run nginx` を実行したとき、内部では以下のことが起きます
 
-| 順番 | コンポーネント | 処理                                                         |
+{: .labeled}
+| 順番 | コンポーネント | 処理 |
 | ---- | -------------- | ------------------------------------------------------------ |
-| 1    | Docker CLI     | コマンドを解析し、Docker Engine に REST API リクエストを送信 |
-| 2    | Docker Engine  | イメージのチェック（ローカルになければ pull を指示）         |
-| 3    | containerd     | イメージの pull とレイヤの展開                               |
-| 4    | containerd     | ルートファイルシステムの準備と config.json の生成            |
-| 5    | runc           | namespace の作成、cgroup の設定（コンテナは created 状態）   |
-| 6    | Docker Engine  | ネットワークの設定（bridge、veth ペアの作成）                |
-| 7    | runc           | コンテナ内のプロセスを起動（コンテナは running 状態）        |
+| 1 | Docker CLI | コマンドを解析し、Docker Engine に REST API リクエストを送信 |
+| 2 | Docker Engine | イメージのチェック（ローカルになければ pull を指示） |
+| 3 | containerd | イメージの pull とレイヤの展開 |
+| 4 | containerd | ルートファイルシステムの準備と config.json の生成 |
+| 5 | runc | namespace の作成、cgroup の設定（コンテナは created 状態） |
+| 6 | Docker Engine | ネットワークの設定（bridge、veth ペアの作成） |
+| 7 | runc | コンテナ内のプロセスを起動（コンテナは running 状態） |
 
 ---
 
-## Podman のアーキテクチャ
+## [Podman のアーキテクチャ](#podman-architecture) {#podman-architecture}
 
 <strong>Podman</strong> は、Docker と CLI 互換のコンテナランタイムです
 
 Docker との最大の違いは、<strong>デーモンが不要</strong>（デーモンレス）であることです
 
-### コンポーネントの階層
+### [コンポーネントの階層](#podman-component-hierarchy) {#podman-component-hierarchy}
 
 ```
 ユーザー
@@ -421,7 +426,7 @@ runc
 コンテナ（namespace + cgroup + rootfs）
 ```
 
-### Docker との構造の違い
+### [Docker との構造の違い](#difference-from-docker) {#difference-from-docker}
 
 <strong>デーモンレス</strong>
 
@@ -451,7 +456,7 @@ Podman では、各コンテナは Podman コマンドから fork/exec されま
 
 これにより、デーモンの単一障害点がなくなります
 
-### rootless がデフォルト
+### [rootless がデフォルト](#rootless-by-default) {#rootless-by-default}
 
 Podman は<strong>rootless モード</strong>（root 権限なしでのコンテナ実行）をデフォルトでサポートしています
 
@@ -461,20 +466,21 @@ Docker も rootless モードをサポートしていますが、追加の設定
 
 ---
 
-## Docker と Podman の比較
+## [Docker と Podman の比較](#docker-vs-podman) {#docker-vs-podman}
 
-| 項目               | Docker                                      | Podman                                                                  |
+{: .labeled}
+| 項目 | Docker | Podman |
 | ------------------ | ------------------------------------------- | ----------------------------------------------------------------------- |
-| デーモン           | 必要（dockerd が常駐）                      | 不要（デーモンレス）                                                    |
-| CLI                | docker コマンド                             | podman コマンド（Docker 互換）                                          |
-| rootless           | 追加設定が必要                              | デフォルトでサポート                                                    |
-| コンテナ監視       | dockerd が全コンテナを管理                  | conmon がコンテナごとに監視                                             |
-| 低レベルランタイム | runc（containerd 経由）                     | runc（直接呼び出し）                                                    |
-| 高レベルランタイム | containerd                                  | Podman 自体が担当                                                       |
-| Pod サポート       | なし（複数コンテナの管理は Compose で行う） | Kubernetes 互換の Pod（関連するコンテナをグループ化する単位）をサポート |
-| OCI 準拠           | はい                                        | はい                                                                    |
+| デーモン | 必要（dockerd が常駐） | 不要（デーモンレス） |
+| CLI | docker コマンド | podman コマンド（Docker 互換） |
+| rootless | 追加設定が必要 | デフォルトでサポート |
+| コンテナ監視 | dockerd が全コンテナを管理 | conmon がコンテナごとに監視 |
+| 低レベルランタイム | runc（containerd 経由） | runc（直接呼び出し） |
+| 高レベルランタイム | containerd | Podman 自体が担当 |
+| Pod サポート | なし（複数コンテナの管理は Compose で行う） | Kubernetes 互換の Pod（関連するコンテナをグループ化する単位）をサポート |
+| OCI 準拠 | はい | はい |
 
-### デーモンの有無がもたらす違い
+### [デーモンの有無がもたらす違い](#daemon-presence-difference) {#daemon-presence-difference}
 
 <strong>Docker（デーモンあり）</strong>
 
@@ -488,7 +494,7 @@ Docker も rootless モードをサポートしていますが、追加の設定
 - 一般ユーザー権限で動作するため、セキュリティリスクが低い
 - systemd との統合により、コンテナをシステムサービスとして管理できる
 
-### CLI の互換性
+### [CLI の互換性](#cli-compatibility) {#cli-compatibility}
 
 Podman は Docker との CLI 互換性を重視しています
 
@@ -502,7 +508,7 @@ docker build .      →    podman build .
 
 ---
 
-## 次のトピックへ
+## [次のトピックへ](#next-topic) {#next-topic}
 
 このトピックでは、以下のことを学びました
 
@@ -520,68 +526,69 @@ docker build .      →    podman build .
 
 `docker run nginx` の `nginx` とは何でしょうか？
 
-次のトピック [03-image](./03-image.md) では、<strong>コンテナイメージ</strong>の仕組みを学びます
+次のトピック [03-image](../03-image/) では、<strong>コンテナイメージ</strong>の仕組みを学びます
 
 レイヤ構造、overlay filesystem、レジストリ、ビルドプロセスを理解することで、コンテナの中身がどう作られ、どう配布されるかが分かります
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語                             | 説明                                                                                      |
+{: .labeled}
+| 用語 | 説明 |
 | -------------------------------- | ----------------------------------------------------------------------------------------- |
-| OCI（Open Container Initiative） | コンテナの標準仕様を策定する組織。2015 年に設立                                           |
-| OCI Runtime Specification        | コンテナの実行方法（ライフサイクル、config.json）を定義する仕様                           |
-| OCI Image Specification          | コンテナイメージの構造（レイヤ、メタデータ）を定義する仕様                                |
-| OCI Distribution Specification   | コンテナイメージの配布方法（レジストリとの通信）を定義する仕様                            |
-| config.json                      | OCI Runtime Specification で定義される、コンテナの設定ファイル                            |
-| コンテナランタイム               | コンテナのライフサイクルを管理するソフトウェアの総称                                      |
-| 低レベルランタイム               | namespace と cgroup を直接操作してコンテナを作成・実行するランタイム（runc 等）           |
-| 高レベルランタイム               | イメージ管理やコンテナ管理を含む、より広い機能を持つランタイム（containerd 等）           |
-| runc                             | OCI 準拠の低レベルコンテナランタイム。Docker から独立したプロジェクト                     |
-| containerd                       | コンテナのライフサイクル全体を管理する高レベルランタイム。Docker から独立したプロジェクト |
-| Docker CLI                       | Docker のコマンドラインツール。REST API で Docker Engine と通信する                       |
-| Docker Engine（dockerd）         | Docker のメインデーモン。コンテナ、イメージ、ネットワーク、ボリュームを管理する           |
-| Podman                           | Docker 互換のデーモンレスコンテナランタイム                                               |
-| conmon                           | Podman が使用するコンテナモニター。コンテナプロセスの監視とログ収集を行う                 |
-| デーモン                         | バックグラウンドで常時動作するプロセス                                                    |
-| デーモンレス                     | デーモンを必要としないアーキテクチャ                                                      |
-| gRPC                             | Google が開発した高性能な RPC（Remote Procedure Call）フレームワーク                      |
-| REST API                         | HTTP ベースの API 設計スタイル                                                            |
-| rootless                         | root 権限なしで動作するモード                                                             |
-| 単一障害点                       | その機能が停止するとシステム全体に影響が及ぶ箇所                                          |
+| OCI（Open Container Initiative） | コンテナの標準仕様を策定する組織。2015 年に設立 |
+| OCI Runtime Specification | コンテナの実行方法（ライフサイクル、config.json）を定義する仕様 |
+| OCI Image Specification | コンテナイメージの構造（レイヤ、メタデータ）を定義する仕様 |
+| OCI Distribution Specification | コンテナイメージの配布方法（レジストリとの通信）を定義する仕様 |
+| config.json | OCI Runtime Specification で定義される、コンテナの設定ファイル |
+| コンテナランタイム | コンテナのライフサイクルを管理するソフトウェアの総称 |
+| 低レベルランタイム | namespace と cgroup を直接操作してコンテナを作成・実行するランタイム（runc 等） |
+| 高レベルランタイム | イメージ管理やコンテナ管理を含む、より広い機能を持つランタイム（containerd 等） |
+| runc | OCI 準拠の低レベルコンテナランタイム。Docker から独立したプロジェクト |
+| containerd | コンテナのライフサイクル全体を管理する高レベルランタイム。Docker から独立したプロジェクト |
+| Docker CLI | Docker のコマンドラインツール。REST API で Docker Engine と通信する |
+| Docker Engine（dockerd） | Docker のメインデーモン。コンテナ、イメージ、ネットワーク、ボリュームを管理する |
+| Podman | Docker 互換のデーモンレスコンテナランタイム |
+| conmon | Podman が使用するコンテナモニター。コンテナプロセスの監視とログ収集を行う |
+| デーモン | バックグラウンドで常時動作するプロセス |
+| デーモンレス | デーモンを必要としないアーキテクチャ |
+| gRPC | Google が開発した高性能な RPC（Remote Procedure Call）フレームワーク |
+| REST API | HTTP ベースの API 設計スタイル |
+| rootless | root 権限なしで動作するモード |
+| 単一障害点 | その機能が停止するとシステム全体に影響が及ぶ箇所 |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>OCI 仕様</strong>
 
-- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec/blob/main/spec.md)
+- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec/blob/main/spec.md){:target="\_blank"}
   - コンテナランタイムの標準仕様（ライフサイクル、config.json の構造）
-- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md)
+- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md){:target="\_blank"}
   - コンテナイメージの標準仕様（レイヤ構造、マニフェスト）
-- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md)
+- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md){:target="\_blank"}
   - イメージ配布の標準仕様（レジストリとの通信プロトコル）
 
 <strong>runc</strong>
 
-- [runc - GitHub](https://github.com/opencontainers/runc)
+- [runc - GitHub](https://github.com/opencontainers/runc){:target="\_blank"}
   - OCI 準拠の低レベルコンテナランタイム
 
 <strong>containerd</strong>
 
-- [containerd - Getting Started](https://containerd.io/docs/getting-started/)
+- [containerd - Getting Started](https://containerd.io/docs/getting-started/){:target="\_blank"}
   - containerd の概要とアーキテクチャ
 
 <strong>Docker</strong>
 
-- [Docker overview](https://docs.docker.com/get-started/overview/)
+- [Docker overview](https://docs.docker.com/get-started/overview/){:target="\_blank"}
   - Docker のアーキテクチャ（CLI → dockerd → containerd → runc）
 
 <strong>Podman</strong>
 
-- [What is Podman?](https://docs.podman.io/en/latest/)
+- [What is Podman?](https://docs.podman.io/en/latest/){:target="\_blank"}
   - Podman の概要とデーモンレスアーキテクチャ

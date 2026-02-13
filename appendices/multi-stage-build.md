@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: マルチステージビルド
+---
 
-# appendix：マルチステージビルド
+# [appendix：マルチステージビルド](#multi-stage-build) {#multi-stage-build}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[03-image](../03-image.md) では、Dockerfile の各命令がレイヤを生成し、それらが積み重なってイメージになることを学びました
+[03-image](../../03-image/) では、Dockerfile の各命令がレイヤを生成し、それらが積み重なってイメージになることを学びました
 
 - FROM でベースイメージを指定
 - RUN でコマンドを実行
@@ -22,7 +23,7 @@
 
 ---
 
-## 単一ステージビルドの問題
+## [単一ステージビルドの問題](#single-stage-build-problems) {#single-stage-build-problems}
 
 Go アプリケーションを例に考えてみましょう
 
@@ -38,13 +39,14 @@ CMD ["/app/myapp"]
 
 この Dockerfile でビルドすると、最終イメージには以下がすべて含まれます
 
-| 含まれるもの           | 実行時に必要か |
+{: .labeled}
+| 含まれるもの | 実行時に必要か |
 | ---------------------- | -------------- |
-| Go コンパイラ          | 不要           |
-| Go の標準ライブラリ    | 不要           |
-| ソースコード           | 不要           |
-| ビルド時の中間ファイル | 不要           |
-| ビルドされたバイナリ   | 必要           |
+| Go コンパイラ | 不要 |
+| Go の標準ライブラリ | 不要 |
+| ソースコード | 不要 |
+| ビルド時の中間ファイル | 不要 |
+| ビルドされたバイナリ | 必要 |
 
 Go コンパイラだけで数百 MB あります
 
@@ -52,13 +54,13 @@ Go コンパイラだけで数百 MB あります
 
 ---
 
-## マルチステージビルドの仕組み
+## [マルチステージビルドの仕組み](#multi-stage-build-mechanism) {#multi-stage-build-mechanism}
 
 マルチステージビルドでは、Dockerfile 内で<strong>FROM を複数回</strong>使います
 
 各 FROM が新しい<strong>ビルドステージ</strong>を開始し、最終的な FROM のステージだけが最終イメージになります
 
-### Dockerfile の例
+### [Dockerfile の例](#dockerfile-example) {#dockerfile-example}
 
 ```dockerfile
 FROM golang:1.23 AS builder
@@ -74,28 +76,29 @@ COPY --from=builder /app/myapp /usr/local/bin/myapp
 CMD ["myapp"]
 ```
 
-### 各ステージの役割
+### [各ステージの役割](#stage-roles) {#stage-roles}
 
-| ステージ              | ベースイメージ       | 役割                                 |
+{: .labeled}
+| ステージ | ベースイメージ | 役割 |
 | --------------------- | -------------------- | ------------------------------------ |
-| builder（ステージ 1） | golang:1.23          | ソースコードをコンパイルする         |
-| 最終ステージ          | debian:bookworm-slim | ビルド済みバイナリだけを含む実行環境 |
+| builder（ステージ 1） | golang:1.23 | ソースコードをコンパイルする |
+| 最終ステージ | debian:bookworm-slim | ビルド済みバイナリだけを含む実行環境 |
 
-### COPY --from の動作
+### [COPY --from の動作](#copy-from-behavior) {#copy-from-behavior}
 
 `COPY --from=builder` は、builder ステージのファイルシステムからファイルをコピーします
 
-これは [03-image](../03-image.md) で学んだ COPY 命令の拡張です
+これは [03-image](../../03-image/) で学んだ COPY 命令の拡張です
 
 通常の COPY はホストのファイルをイメージにコピーしますが、`--from` を指定すると別のステージのファイルシステムからコピーします
 
 ---
 
-## レイヤ構造の観点
+## [レイヤ構造の観点](#layer-structure-perspective) {#layer-structure-perspective}
 
-[03-image](../03-image.md) で学んだレイヤ構造の知識を使って、マルチステージビルドを理解しましょう
+[03-image](../../03-image/) で学んだレイヤ構造の知識を使って、マルチステージビルドを理解しましょう
 
-### builder ステージのレイヤ
+### [builder ステージのレイヤ](#builder-stage-layers) {#builder-stage-layers}
 
 ```
 レイヤ 3: RUN go build（バイナリを生成）
@@ -103,7 +106,7 @@ CMD ["myapp"]
 レイヤ 1: golang:1.23（Go コンパイラ + Debian）
 ```
 
-### 最終ステージのレイヤ
+### [最終ステージのレイヤ](#final-stage-layers) {#final-stage-layers}
 
 ```
 レイヤ 2: COPY --from=builder（バイナリだけをコピー）
@@ -114,20 +117,21 @@ CMD ["myapp"]
 
 builder ステージはビルド時にのみ使用され、最終イメージには最終ステージのレイヤだけが残ります
 
-### サイズの比較
+### [サイズの比較](#size-comparison) {#size-comparison}
 
-| ビルド方法     | イメージサイズの目安 |
+{: .labeled}
+| ビルド方法 | イメージサイズの目安 |
 | -------------- | -------------------- |
-| 単一ステージ   | 約 1 GB              |
-| マルチステージ | 約 80 MB             |
+| 単一ステージ | 約 1 GB |
+| マルチステージ | 約 80 MB |
 
 ---
 
-## scratch と distroless
+## [scratch と distroless](#scratch-and-distroless) {#scratch-and-distroless}
 
 マルチステージビルドの最終ステージでは、最小限のベースイメージを使うことでさらにイメージサイズを削減できます
 
-### scratch
+### [scratch](#scratch) {#scratch}
 
 <strong>scratch</strong> は、完全に空のベースイメージです
 
@@ -153,42 +157,43 @@ scratch ベースのイメージには、バイナリ以外何も含まれない
 
 ただし、シェル（/bin/sh）もないため、`docker exec` でシェルに入ることができません
 
-### distroless
+### [distroless](#distroless) {#distroless}
 
 <strong>distroless</strong> は、Google が提供する最小限の実行環境イメージです
 
 アプリケーションの実行に必要な最小限のファイル（libc、CA 証明書等）だけを含みます
 
-| イメージ   | 含まれるもの                                   | シェル |
+{: .labeled}
+| イメージ | 含まれるもの | シェル |
 | ---------- | ---------------------------------------------- | ------ |
-| scratch    | 何もない                                       | なし   |
-| distroless | libc、CA 証明書、タイムゾーンデータ等          | なし   |
-| slim       | パッケージマネージャを除いた OS の基本ファイル | あり   |
-| 通常       | OS の基本ファイル + パッケージマネージャ       | あり   |
+| scratch | 何もない | なし |
+| distroless | libc、CA 証明書、タイムゾーンデータ等 | なし |
+| slim | パッケージマネージャを除いた OS の基本ファイル | あり |
+| 通常 | OS の基本ファイル + パッケージマネージャ | あり |
 
 distroless はシェルを含まないため、攻撃者がコンテナに侵入してもシェルを使った操作ができません
 
-これはセキュリティ上の利点です（[06-security](../06-security.md) の多層防御の考え方に通じます）
+これはセキュリティ上の利点です（[06-security](../../06-security/) の多層防御の考え方に通じます）
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>Docker</strong>
 
-- [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/)
+- [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/){:target="\_blank"}
   - マルチステージビルドの公式ドキュメント
-- [Dockerfile reference - FROM](https://docs.docker.com/reference/dockerfile/#from)
+- [Dockerfile reference - FROM](https://docs.docker.com/reference/dockerfile/#from){:target="\_blank"}
   - FROM 命令と AS によるステージ名の指定
 
 <strong>OCI</strong>
 
-- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md)
+- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md){:target="\_blank"}
   - コンテナイメージのレイヤ構造の標準仕様
 
 <strong>distroless</strong>
 
-- [distroless - GitHub](https://github.com/GoogleContainerTools/distroless)
+- [distroless - GitHub](https://github.com/GoogleContainerTools/distroless){:target="\_blank"}
   - Google が提供する最小限のコンテナイメージ

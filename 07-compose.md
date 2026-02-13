@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: Compose
+---
 
-# 07-compose：Compose
+# [07-compose：Compose](#compose) {#compose}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[06-security](./06-security.md) まで、コンテナの主要な仕組みをすべて学びました
+[06-security](../06-security/) まで、コンテナの主要な仕組みをすべて学びました
 
 namespace と cgroup がコンテナを作り、ランタイムがそれを管理し、イメージがコンテナの中身を提供し、ネットワークとストレージがコンテナの通信とデータ永続化を実現し、セキュリティ機構がコンテナを保護します
 
@@ -28,7 +29,7 @@ namespace と cgroup がコンテナを作り、ランタイムがそれを管�
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 Docker Compose を「レストランのレシピ」に例えてみましょう
 
@@ -48,7 +49,7 @@ Docker Compose を「レストランのレシピ」に例えてみましょう
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -75,39 +76,40 @@ Docker Compose を「レストランのレシピ」に例えてみましょう
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [なぜ複数コンテナが必要か](#なぜ複数コンテナが必要か)
-2. [Docker Compose とは何か](#docker-compose-とは何か)
-3. [compose.yaml の構造](#composeyaml-の構造)
-4. [サービス定義](#サービス定義)
-5. [Compose のネットワーク](#compose-のネットワーク)
-6. [Compose のボリューム](#compose-のボリューム)
-7. [Compose のライフサイクル管理](#compose-のライフサイクル管理)
-8. [まとめ：このリポジトリで学んだこと](#まとめこのリポジトリで学んだこと)
-9. [用語集](#用語集)
-10. [参考資料](#参考資料)
+1. [なぜ複数コンテナが必要か](#why-multiple-containers)
+2. [Docker Compose とは何か](#what-is-docker-compose)
+3. [compose.yaml の構造](#compose-yaml-structure)
+4. [サービス定義](#service-definition)
+5. [Compose のネットワーク](#compose-network)
+6. [Compose のボリューム](#compose-volume)
+7. [Compose のライフサイクル管理](#compose-lifecycle)
+8. [まとめ：このリポジトリで学んだこと](#final-summary)
+9. [用語集](#glossary)
+10. [参考資料](#references)
 
 ---
 
-## なぜ複数コンテナが必要か
+## [なぜ複数コンテナが必要か](#why-multiple-containers) {#why-multiple-containers}
 
-### 関心の分離
+### [関心の分離](#separation-of-concerns) {#separation-of-concerns}
 
 コンテナは「1つのコンテナで1つの役割」という設計思想に基づいています
 
 1つのコンテナに Web サーバー、アプリケーション、データベースをすべて入れることもできますが、以下の問題が生じます
 
-| 問題             | 説明                                                                   |
+{: .labeled}
+| 問題 | 説明 |
 | ---------------- | ---------------------------------------------------------------------- |
-| 更新が困難       | アプリケーションだけを更新したいのに、コンテナ全体を作り直す必要がある |
-| スケールが困難   | Web サーバーだけを増やしたいのに、データベースまで複製される           |
-| 障害の影響       | 1つのプロセスの障害が他のプロセスに影響する                            |
-| イメージの肥大化 | すべてのソフトウェアを含むため、イメージが大きくなる                   |
+| 更新が困難 | アプリケーションだけを更新したいのに、コンテナ全体を作り直す必要がある |
+| スケールが困難 | Web サーバーだけを増やしたいのに、データベースまで複製される |
+| 障害の影響 | 1つのプロセスの障害が他のプロセスに影響する |
+| イメージの肥大化 | すべてのソフトウェアを含むため、イメージが大きくなる |
 
 各役割を別のコンテナに分けることで、それぞれを独立して更新、スケール、管理できます
 
-### 複数コンテナの例
+### [複数コンテナの例](#multiple-containers-example) {#multiple-containers-example}
 
 典型的な Web アプリケーションの構成例です
 
@@ -123,11 +125,11 @@ Docker Compose を「レストランのレシピ」に例えてみましょう
 
 ---
 
-## Docker Compose とは何か
+## [Docker Compose とは何か](#what-is-docker-compose) {#what-is-docker-compose}
 
 <strong>Docker Compose</strong> は、複数のコンテナの構成を <strong>compose.yaml</strong>（または docker-compose.yml）ファイルで定義し、1つのコマンドでまとめて管理するツールです
 
-### Compose がない場合
+### [Compose がない場合](#without-compose) {#without-compose}
 
 複数のコンテナを手動で管理する必要があります
 
@@ -139,7 +141,7 @@ docker run -d --name app --network my-app -e DATABASE_URL=postgres://db:5432/myd
 docker run -d --name web --network my-app -p 80:80 nginx
 ```
 
-### Compose がある場合
+### [Compose がある場合](#with-compose) {#with-compose}
 
 同じ構成を compose.yaml に記述し、1つのコマンドで管理できます
 
@@ -149,7 +151,7 @@ docker compose up -d
 
 起動も停止も、すべてのコンテナがまとめて管理されます
 
-### Compose Specification
+### [Compose Specification](#compose-specification) {#compose-specification}
 
 Docker Compose の設定ファイル形式は、<strong>Compose Specification</strong> として標準化されています
 
@@ -157,7 +159,7 @@ Docker Compose の設定ファイル形式は、<strong>Compose Specification</s
 
 ---
 
-## compose.yaml の構造
+## [compose.yaml の構造](#compose-yaml-structure) {#compose-yaml-structure}
 
 compose.yaml は、以下の3つのセクションで構成されます
 
@@ -172,7 +174,7 @@ volumes:
   # ボリュームの定義
 ```
 
-### 実際の例
+### [実際の例](#example) {#example}
 
 Web アプリケーション + データベースの構成例です
 
@@ -210,24 +212,25 @@ volumes:
 
 ---
 
-## サービス定義
+## [サービス定義](#service-definition) {#service-definition}
 
 services セクションでは、各コンテナの設定を<strong>サービス</strong>として定義します
 
-### 主な設定項目
+### [主な設定項目](#main-config-options) {#main-config-options}
 
-| 設定        | 説明                            | 例                                 |
+{: .labeled}
+| 設定 | 説明 | 例 |
 | ----------- | ------------------------------- | ---------------------------------- |
-| image       | 使用するコンテナイメージ        | `image: nginx:1.27`                |
-| build       | Dockerfile からイメージをビルド | `build: ./app`                     |
-| ports       | ポートマッピング                | `ports: ["80:80"]`                 |
-| environment | 環境変数                        | `environment: [DATABASE_URL=...]`  |
-| volumes     | ボリュームやバインドマウント    | `volumes: [db-data:/var/lib/data]` |
-| depends_on  | 依存関係（起動順序）            | `depends_on: [db]`                 |
-| command     | デフォルトコマンドの上書き      | `command: ["python", "app.py"]`    |
-| restart     | 再起動ポリシー                  | `restart: unless-stopped`          |
+| image | 使用するコンテナイメージ | `image: nginx:1.27` |
+| build | Dockerfile からイメージをビルド | `build: ./app` |
+| ports | ポートマッピング | `ports: ["80:80"]` |
+| environment | 環境変数 | `environment: [DATABASE_URL=...]` |
+| volumes | ボリュームやバインドマウント | `volumes: [db-data:/var/lib/data]` |
+| depends_on | 依存関係（起動順序） | `depends_on: [db]` |
+| command | デフォルトコマンドの上書き | `command: ["python", "app.py"]` |
+| restart | 再起動ポリシー | `restart: unless-stopped` |
 
-### image と build
+### [image と build](#image-and-build) {#image-and-build}
 
 <strong>image</strong> は既存のイメージを使用する場合に指定します
 
@@ -247,7 +250,7 @@ services:
 
 build と image の両方を指定すると、ビルドしたイメージに指定した名前が付けられます
 
-### depends_on
+### [depends_on](#depends-on) {#depends-on}
 
 depends_on は、サービス間の<strong>起動順序</strong>を定義します
 
@@ -283,7 +286,7 @@ services:
       retries: 5
 ```
 
-### environment
+### [environment](#environment) {#environment}
 
 environment は、コンテナに<strong>環境変数</strong>を設定します
 
@@ -300,22 +303,23 @@ services:
 
 データベースの接続先、API キー、動作モードなど、環境によって変わる設定を環境変数で管理するのが一般的です
 
-### restart
+### [restart](#restart) {#restart}
 
 restart は、コンテナの<strong>再起動ポリシー</strong>を定義します
 
-| ポリシー       | 説明                           |
+{: .labeled}
+| ポリシー | 説明 |
 | -------------- | ------------------------------ |
-| no             | 再起動しない（デフォルト）     |
-| always         | 常に再起動する                 |
-| on-failure     | 異常終了時のみ再起動する       |
+| no | 再起動しない（デフォルト） |
+| always | 常に再起動する |
+| on-failure | 異常終了時のみ再起動する |
 | unless-stopped | 手動で停止しない限り再起動する |
 
 ---
 
-## Compose のネットワーク
+## [Compose のネットワーク](#compose-network) {#compose-network}
 
-### デフォルトネットワーク
+### [デフォルトネットワーク](#default-network) {#default-network}
 
 Docker Compose は、プロジェクトごとに<strong>デフォルトのブリッジネットワーク</strong>を自動作成します
 
@@ -333,9 +337,9 @@ compose.yaml が置かれたディレクトリ名がプロジェクト名とし�
       └── db（postgres）
 ```
 
-### サービス名による名前解決
+### [サービス名による名前解決](#service-name-resolution) {#service-name-resolution}
 
-[04-network](./04-network.md) で学んだユーザー定義 bridge の DNS 機能が、Compose でも使われます
+[04-network](../04-network/) で学んだユーザー定義 bridge の DNS 機能が、Compose でも使われます
 
 各サービスは、サービス名（compose.yaml で定義した名前）で他のサービスにアクセスできます
 
@@ -350,7 +354,7 @@ services:
 
 Docker の内部 DNS サーバーが `db` を db コンテナの IP アドレスに解決します
 
-### カスタムネットワーク
+### [カスタムネットワーク](#custom-network) {#custom-network}
 
 必要に応じて、カスタムネットワークを定義してサービス間の通信を制御できます
 
@@ -382,9 +386,9 @@ web と db は異なるネットワークに属するため、直接通信でき
 
 ---
 
-## Compose のボリューム
+## [Compose のボリューム](#compose-volume) {#compose-volume}
 
-### 名前付きボリューム
+### [名前付きボリューム](#named-volume) {#named-volume}
 
 compose.yaml でボリュームを定義すると、Docker がボリュームを管理します
 
@@ -401,7 +405,7 @@ volumes:
 
 `volumes:` セクションでボリュームを宣言し、サービスの `volumes:` でマウント先を指定します
 
-### バインドマウント
+### [バインドマウント](#bind-mount) {#bind-mount}
 
 compose.yaml でバインドマウントも指定できます
 
@@ -417,7 +421,7 @@ services:
 
 `:ro` は読み取り専用（read-only）を意味し、コンテナからの変更を防ぎます
 
-### ボリュームのライフサイクル
+### [ボリュームのライフサイクル](#volume-lifecycle) {#volume-lifecycle}
 
 `docker compose down` でコンテナを停止・削除しても、<strong>ボリュームは保持されます</strong>
 
@@ -430,64 +434,68 @@ docker compose down -v    ← コンテナ、ネットワーク、ボリュー�
 
 ---
 
-## Compose のライフサイクル管理
+## [Compose のライフサイクル管理](#compose-lifecycle) {#compose-lifecycle}
 
 Docker Compose は、複数のコンテナを1つのコマンドでまとめて管理します
 
-### 主要なコマンド
+### [主要なコマンド](#main-commands) {#main-commands}
 
-| コマンド                 | 説明                           |
+{: .labeled}
+| コマンド | 説明 |
 | ------------------------ | ------------------------------ |
-| `docker compose up`      | サービスを作成して起動する     |
-| `docker compose up -d`   | バックグラウンドで起動する     |
-| `docker compose down`    | サービスを停止して削除する     |
-| `docker compose ps`      | 実行中のサービス一覧を表示する |
-| `docker compose logs`    | サービスのログを表示する       |
-| `docker compose logs -f` | ログをリアルタイムで表示する   |
-| `docker compose build`   | サービスのイメージをビルドする |
-| `docker compose restart` | サービスを再起動する           |
+| `docker compose up` | サービスを作成して起動する |
+| `docker compose up -d` | バックグラウンドで起動する |
+| `docker compose down` | サービスを停止して削除する |
+| `docker compose ps` | 実行中のサービス一覧を表示する |
+| `docker compose logs` | サービスのログを表示する |
+| `docker compose logs -f` | ログをリアルタイムで表示する |
+| `docker compose build` | サービスのイメージをビルドする |
+| `docker compose restart` | サービスを再起動する |
 
-### up の動作
+### [up の動作](#up-command-behavior) {#up-command-behavior}
 
 `docker compose up` を実行すると、以下の処理が順番に行われます
 
-| 順番 | 処理                                            |
+{: .labeled}
+| 順番 | 処理 |
 | ---- | ----------------------------------------------- |
-| 1    | compose.yaml を読み込む                         |
-| 2    | デフォルトネットワークを作成する                |
-| 3    | 定義されたボリュームを作成する                  |
-| 4    | depends_on に従ってサービスの起動順序を決定する |
-| 5    | 各サービスのイメージを pull またはビルドする    |
-| 6    | 各サービスのコンテナを作成・起動する            |
+| 1 | compose.yaml を読み込む |
+| 2 | デフォルトネットワークを作成する |
+| 3 | 定義されたボリュームを作成する |
+| 4 | depends_on に従ってサービスの起動順序を決定する |
+| 5 | 各サービスのイメージを pull またはビルドする |
+| 6 | 各サービスのコンテナを作成・起動する |
 
-### down の動作
+### [down の動作](#down-command-behavior) {#down-command-behavior}
 
 `docker compose down` を実行すると、以下の処理が行われます
 
-| 順番 | 処理                                          |
+{: .labeled}
+| 順番 | 処理 |
 | ---- | --------------------------------------------- |
-| 1    | すべてのコンテナを停止する                    |
-| 2    | すべてのコンテナを削除する                    |
-| 3    | デフォルトネットワークを削除する              |
-| 4    | ボリュームは削除しない（-v を指定しない限り） |
+| 1 | すべてのコンテナを停止する |
+| 2 | すべてのコンテナを削除する |
+| 3 | デフォルトネットワークを削除する |
+| 4 | ボリュームは削除しない（-v を指定しない限り） |
 
 ---
 
-## まとめ：このリポジトリで学んだこと
+## [まとめ：このリポジトリで学んだこと](#final-summary) {#final-summary}
 
 このリポジトリでは、「コンテナはどう動き、どう使うか」を学びました
 
-### 学んだトピック
+### [学んだトピック](#learned-topics) {#learned-topics}
 
-| トピック           | 内容                                                                         |
+{: .labeled}
+| トピック | 内容 |
 | ------------------ | ---------------------------------------------------------------------------- |
-| 01-container       | コンテナの正体は namespace で隔離され cgroup で制限されたプロセス            |
+| 01-container | コンテナの正体は namespace で隔離され cgroup で制限されたプロセス |
 | 02-oci-and-runtime | OCI 仕様がコンテナを標準化し、runc / containerd / Docker / Podman が管理する |
-| 03-image           | レイヤ構造と overlay filesystem でイメージが効率的に構成される               |
-| 04-network         | bridge、veth ペア、ポートマッピングでコンテナが通信する                      |
-| 05-storage         | ボリュームとバインドマウントでデータを永続化する                             |
-| 06-security        | capabilities、seccomp、rootless の多層防御でコンテナを保護する               |
-| 07-compose         | compose.yaml で複数コンテナを定義し、まとめて管理する                        |
+| 03-image | レイヤ構造と overlay filesystem でイメージが効率的に構成される |
+| 04-network | bridge、veth ペア、ポートマッピングでコンテナが通信する |
+| 05-storage | ボリュームとバインドマウントでデータを永続化する |
+| 06-security | capabilities、seccomp、rootless の多層防御でコンテナを保護する |
+| 07-compose | compose.yaml で複数コンテナを定義し、まとめて管理する |
 
 `docker compose up` を実行したとき、何が起きているかを最初から最後まで説明できるようになりました
 
@@ -501,38 +509,39 @@ Docker Compose は、複数のコンテナを1つのコマンドでまとめて�
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語                   | 説明                                                                                        |
+{: .labeled}
+| 用語 | 説明 |
 | ---------------------- | ------------------------------------------------------------------------------------------- |
-| Docker Compose         | 複数のコンテナの構成を定義し、まとめて管理するツール                                        |
-| compose.yaml           | Docker Compose の設定ファイル。サービス、ネットワーク、ボリュームを定義する                 |
-| Compose Specification  | compose.yaml の形式を標準化する仕様                                                         |
-| サービス               | compose.yaml で定義されるコンテナの設定単位                                                 |
-| プロジェクト           | Docker Compose が管理する一連のサービス、ネットワーク、ボリュームの集合                     |
-| depends_on             | サービス間の起動順序の依存関係を定義する設定                                                |
-| デフォルトネットワーク | Docker Compose がプロジェクトごとに自動作成するブリッジネットワーク                         |
-| 名前付きボリューム     | compose.yaml の volumes セクションで定義される、Docker が管理するボリューム                 |
-| docker compose up      | サービスを作成して起動するコマンド                                                          |
-| docker compose down    | サービスを停止して削除するコマンド                                                          |
-| 再起動ポリシー         | コンテナが終了した際の再起動動作を定義する設定（no / always / on-failure / unless-stopped） |
-| 環境変数               | コンテナ内のアプリケーションに渡す設定値                                                    |
-| 関心の分離             | 各コンテナが1つの役割を担い、独立して管理できるようにする設計原則                           |
+| Docker Compose | 複数のコンテナの構成を定義し、まとめて管理するツール |
+| compose.yaml | Docker Compose の設定ファイル。サービス、ネットワーク、ボリュームを定義する |
+| Compose Specification | compose.yaml の形式を標準化する仕様 |
+| サービス | compose.yaml で定義されるコンテナの設定単位 |
+| プロジェクト | Docker Compose が管理する一連のサービス、ネットワーク、ボリュームの集合 |
+| depends_on | サービス間の起動順序の依存関係を定義する設定 |
+| デフォルトネットワーク | Docker Compose がプロジェクトごとに自動作成するブリッジネットワーク |
+| 名前付きボリューム | compose.yaml の volumes セクションで定義される、Docker が管理するボリューム |
+| docker compose up | サービスを作成して起動するコマンド |
+| docker compose down | サービスを停止して削除するコマンド |
+| 再起動ポリシー | コンテナが終了した際の再起動動作を定義する設定（no / always / on-failure / unless-stopped） |
+| 環境変数 | コンテナ内のアプリケーションに渡す設定値 |
+| 関心の分離 | 各コンテナが1つの役割を担い、独立して管理できるようにする設計原則 |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>Compose 仕様</strong>
 
-- [Compose Specification](https://github.com/compose-spec/compose-spec/blob/main/spec.md)
+- [Compose Specification](https://github.com/compose-spec/compose-spec/blob/main/spec.md){:target="\_blank"}
   - Docker Compose の設定ファイル形式の標準仕様
 
 <strong>Docker Compose</strong>
 
-- [Docker Compose overview](https://docs.docker.com/compose/)
+- [Docker Compose overview](https://docs.docker.com/compose/){:target="\_blank"}
   - Docker Compose の概要と基本的な使い方
-- [Compose file reference](https://docs.docker.com/reference/compose-file/)
+- [Compose file reference](https://docs.docker.com/reference/compose-file/){:target="\_blank"}
   - compose.yaml の全設定項目のリファレンス

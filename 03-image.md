@@ -1,12 +1,13 @@
-<div align="right">
-<img src="https://img.shields.io/badge/AI-ASSISTED_STUDY-3b82f6?style=for-the-badge&labelColor=1e293b&logo=bookstack&logoColor=white" alt="AI Assisted Study" />
-</div>
+---
+layout: default
+title: イメージ
+---
 
-# 03-image：イメージ
+# [03-image：イメージ](#image) {#image}
 
-## はじめに
+## [はじめに](#introduction) {#introduction}
 
-[02-oci-and-runtime](./02-oci-and-runtime.md) では、コンテナランタイム（runc、containerd、Docker、Podman）がコンテナを管理する仕組みを学びました
+[02-oci-and-runtime](../02-oci-and-runtime/) では、コンテナランタイム（runc、containerd、Docker、Podman）がコンテナを管理する仕組みを学びました
 
 runc は config.json と<strong>rootfs</strong>（ルートファイルシステム）を受け取って、コンテナを起動します
 
@@ -22,7 +23,7 @@ containerd はイメージを pull してルートファイルシステムを準
 
 ---
 
-## 日常の例え
+## [日常の例え](#everyday-analogy) {#everyday-analogy}
 
 コンテナイメージのレイヤ構造を「透明フィルムの重ね合わせ」に例えてみましょう
 
@@ -44,7 +45,7 @@ containerd はイメージを pull してルートファイルシステムを準
 
 ---
 
-## このページで学ぶこと
+## [このページで学ぶこと](#what-you-will-learn) {#what-you-will-learn}
 
 このページでは、以下の概念を学びます
 
@@ -73,41 +74,42 @@ containerd はイメージを pull してルートファイルシステムを準
 
 ---
 
-## 目次
+## [目次](#table-of-contents) {#table-of-contents}
 
-1. [コンテナイメージとは何か](#コンテナイメージとは何か)
-2. [レイヤ構造](#レイヤ構造)
+1. [コンテナイメージとは何か](#what-is-container-image)
+2. [レイヤ構造](#layer-structure)
 3. [Copy-on-Write](#copy-on-write)
 4. [overlay filesystem](#overlay-filesystem)
-5. [Dockerfile とイメージビルド](#dockerfile-とイメージビルド)
-6. [イメージビルドの仕組み](#イメージビルドの仕組み)
-7. [コンテナレジストリ](#コンテナレジストリ)
-8. [イメージの識別](#イメージの識別)
-9. [次のトピックへ](#次のトピックへ)
-10. [用語集](#用語集)
-11. [参考資料](#参考資料)
+5. [Dockerfile とイメージビルド](#dockerfile-and-image-build)
+6. [イメージビルドの仕組み](#image-build-mechanism)
+7. [コンテナレジストリ](#container-registry)
+8. [イメージの識別](#image-identification)
+9. [次のトピックへ](#next-topic)
+10. [用語集](#glossary)
+11. [参考資料](#references)
 
 ---
 
-## コンテナイメージとは何か
+## [コンテナイメージとは何か](#what-is-container-image) {#what-is-container-image}
 
 コンテナイメージは、コンテナを実行するために必要な<strong>すべてのファイルと設定情報</strong>をまとめたパッケージです
 
 具体的には、以下のものが含まれます
 
-| 含まれるもの      | 例                                            |
+{: .labeled}
+| 含まれるもの | 例 |
 | ----------------- | --------------------------------------------- |
 | OS の基本ファイル | /bin、/lib、/etc などのディレクトリとファイル |
-| アプリケーション  | nginx、python、node などのバイナリ            |
-| 依存ライブラリ    | アプリケーションが必要とするライブラリ        |
-| 設定ファイル      | nginx.conf、package.json など                 |
-| メタデータ        | 実行コマンド、環境変数、ポート設定など        |
+| アプリケーション | nginx、python、node などのバイナリ |
+| 依存ライブラリ | アプリケーションが必要とするライブラリ |
+| 設定ファイル | nginx.conf、package.json など |
+| メタデータ | 実行コマンド、環境変数、ポート設定など |
 
 イメージは<strong>読み取り専用</strong>です
 
 イメージからコンテナを起動すると、イメージの上に書き込み可能なレイヤが追加されます（これについては後述します）
 
-### イメージと OS の違い
+### [イメージと OS の違い](#image-vs-os) {#image-vs-os}
 
 コンテナイメージには OS のファイル（/bin/sh、/lib/libc.so など）が含まれていますが、<strong>カーネルは含まれていません</strong>
 
@@ -117,11 +119,11 @@ containerd はイメージを pull してルートファイルシステムを準
 
 ---
 
-## レイヤ構造
+## [レイヤ構造](#layer-structure) {#layer-structure}
 
 コンテナイメージは、1つの大きなファイルではなく、<strong>複数のレイヤ（層）が積み重なった構造</strong>をしています
 
-### レイヤの例
+### [レイヤの例](#layer-example) {#layer-example}
 
 nginx のコンテナイメージを例に考えてみましょう
 
@@ -139,7 +141,7 @@ nginx のコンテナイメージを例に考えてみましょう
 
 各レイヤは、直前のレイヤからの<strong>差分</strong>（変更されたファイル）だけを含みます
 
-### レイヤ構造のメリット
+### [レイヤ構造のメリット](#layer-structure-benefits) {#layer-structure-benefits}
 
 <strong>1. ストレージの節約</strong>
 
@@ -166,7 +168,7 @@ python イメージ ─── レイヤ 3（Python インストール）
 
 ---
 
-## Copy-on-Write
+## [Copy-on-Write](#copy-on-write) {#copy-on-write}
 
 イメージのレイヤは<strong>読み取り専用</strong>です
 
@@ -186,7 +188,7 @@ python イメージ ─── レイヤ 3（Python インストール）
 └──────────────────────────────────────┘
 ```
 
-### Copy-on-Write の動作
+### [Copy-on-Write の動作](#copy-on-write-behavior) {#copy-on-write-behavior}
 
 <strong>ファイルの読み取り</strong>
 
@@ -210,7 +212,7 @@ python イメージ ─── レイヤ 3（Python インストール）
 
 元のイメージレイヤのファイルは実際には削除されません
 
-### Copy-on-Write のメリット
+### [Copy-on-Write のメリット](#copy-on-write-benefits) {#copy-on-write-benefits}
 
 - 同じイメージから複数のコンテナを起動しても、イメージレイヤを共有できる
 - コンテナごとの変更はコンテナレイヤにだけ記録されるため、ストレージ効率が良い
@@ -218,24 +220,25 @@ python イメージ ─── レイヤ 3（Python インストール）
 
 ---
 
-## overlay filesystem
+## [overlay filesystem](#overlay-filesystem) {#overlay-filesystem}
 
 <strong>overlay filesystem</strong>（overlayfs）は、複数のディレクトリを重ね合わせて1つのファイルシステムに見せるカーネル機能です
 
 コンテナのレイヤ構造を実現するために使われます
 
-### overlayfs の構成要素
+### [overlayfs の構成要素](#overlayfs-components) {#overlayfs-components}
 
 overlayfs は以下の 4 つのディレクトリで構成されます
 
-| ディレクトリ | 役割                                     | 対応するコンテナの概念             |
+{: .labeled}
+| ディレクトリ | 役割 | 対応するコンテナの概念 |
 | ------------ | ---------------------------------------- | ---------------------------------- |
-| lowerdir     | 読み取り専用の下位レイヤ（複数指定可能） | イメージレイヤ                     |
-| upperdir     | 書き込み可能な上位レイヤ                 | コンテナレイヤ                     |
-| workdir      | overlayfs の内部作業用ディレクトリ       | （内部使用）                       |
-| merged       | すべてのレイヤが統合された結果           | コンテナから見えるファイルシステム |
+| lowerdir | 読み取り専用の下位レイヤ（複数指定可能） | イメージレイヤ |
+| upperdir | 書き込み可能な上位レイヤ | コンテナレイヤ |
+| workdir | overlayfs の内部作業用ディレクトリ | （内部使用） |
+| merged | すべてのレイヤが統合された結果 | コンテナから見えるファイルシステム |
 
-### 動作の仕組み
+### [動作の仕組み](#operation-mechanism) {#operation-mechanism}
 
 ```
 コンテナから見えるファイルシステム（merged）
@@ -253,7 +256,7 @@ upperdir              lowerdir
 
 ファイルの書き込み時は、lowerdir のファイルが upperdir にコピーされてから変更されます（Copy-on-Write）
 
-### overlayfs のマウント例
+### [overlayfs のマウント例](#overlayfs-mount-example) {#overlayfs-mount-example}
 
 ```
 mount -t overlay overlay \
@@ -267,11 +270,11 @@ mount -t overlay overlay \
 
 ---
 
-## Dockerfile とイメージビルド
+## [Dockerfile とイメージビルド](#dockerfile-and-image-build) {#dockerfile-and-image-build}
 
 <strong>Dockerfile</strong> は、コンテナイメージをビルド（作成）するための定義ファイルです
 
-### 基本的な Dockerfile の例
+### [基本的な Dockerfile の例](#basic-dockerfile-example) {#basic-dockerfile-example}
 
 ```dockerfile
 FROM debian:bookworm-slim
@@ -285,21 +288,22 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### 主要な命令
+### [主要な命令](#main-instructions) {#main-instructions}
 
-| 命令       | 役割                                                              | レイヤ生成                           |
+{: .labeled}
+| 命令 | 役割 | レイヤ生成 |
 | ---------- | ----------------------------------------------------------------- | ------------------------------------ |
-| FROM       | ベースイメージを指定する                                          | ベースレイヤを取得                   |
-| RUN        | コマンドを実行する（パッケージのインストール等）                  | 新しいレイヤを生成                   |
-| COPY       | ホストのファイルをイメージにコピーする                            | 新しいレイヤを生成                   |
-| ADD        | COPY と同様だが、URL からのダウンロードやアーカイブの展開もできる | 新しいレイヤを生成                   |
-| CMD        | コンテナ起動時に実行するデフォルトコマンドを指定する              | レイヤを生成しない（メタデータのみ） |
-| ENTRYPOINT | コンテナ起動時に必ず実行するコマンドを指定する                    | レイヤを生成しない（メタデータのみ） |
-| ENV        | 環境変数を設定する                                                | レイヤを生成しない（メタデータのみ） |
-| EXPOSE     | コンテナがリッスンするポートを宣言する                            | レイヤを生成しない（メタデータのみ） |
-| WORKDIR    | 以降の命令の作業ディレクトリを設定する                            | レイヤを生成しない（メタデータのみ） |
+| FROM | ベースイメージを指定する | ベースレイヤを取得 |
+| RUN | コマンドを実行する（パッケージのインストール等） | 新しいレイヤを生成 |
+| COPY | ホストのファイルをイメージにコピーする | 新しいレイヤを生成 |
+| ADD | COPY と同様だが、URL からのダウンロードやアーカイブの展開もできる | 新しいレイヤを生成 |
+| CMD | コンテナ起動時に実行するデフォルトコマンドを指定する | レイヤを生成しない（メタデータのみ） |
+| ENTRYPOINT | コンテナ起動時に必ず実行するコマンドを指定する | レイヤを生成しない（メタデータのみ） |
+| ENV | 環境変数を設定する | レイヤを生成しない（メタデータのみ） |
+| EXPOSE | コンテナがリッスンするポートを宣言する | レイヤを生成しない（メタデータのみ） |
+| WORKDIR | 以降の命令の作業ディレクトリを設定する | レイヤを生成しない（メタデータのみ） |
 
-### FROM：ベースイメージ
+### [FROM：ベースイメージ](#from-base-image) {#from-base-image}
 
 すべての Dockerfile は FROM 命令から始まります
 
@@ -307,7 +311,7 @@ FROM はベースイメージ（土台となるイメージ）を指定します
 
 多くの場合、Debian、Ubuntu、Alpine などの Linux ディストリビューションのイメージをベースにします
 
-### RUN：コマンドの実行
+### [RUN：コマンドの実行](#run-command) {#run-command}
 
 RUN 命令は、イメージのビルド時にコマンドを実行します
 
@@ -315,7 +319,7 @@ RUN 命令は、イメージのビルド時にコマンドを実行します
 
 各 RUN 命令は新しいレイヤを生成するため、関連するコマンドは `&&` でつないで1つの RUN にまとめるのが一般的です
 
-### CMD と ENTRYPOINT
+### [CMD と ENTRYPOINT](#cmd-and-entrypoint) {#cmd-and-entrypoint}
 
 CMD はコンテナ起動時のデフォルトコマンドを指定します
 
@@ -327,11 +331,11 @@ ENTRYPOINT はコンテナ起動時に必ず実行するコマンドを指定し
 
 ---
 
-## イメージビルドの仕組み
+## [イメージビルドの仕組み](#image-build-mechanism) {#image-build-mechanism}
 
 `docker build` を実行すると、Dockerfile の各命令が順番に処理されます
 
-### ビルドの流れ
+### [ビルドの流れ](#build-flow) {#build-flow}
 
 ```
 Dockerfile
@@ -352,7 +356,7 @@ Dockerfile
   完成したイメージ（3つのレイヤ + メタデータ）
 ```
 
-### ビルドキャッシュ
+### [ビルドキャッシュ](#build-cache) {#build-cache}
 
 Docker は各レイヤの結果をキャッシュします
 
@@ -371,29 +375,31 @@ CMD ["nginx", ...]                 ← 再実行（上位レイヤが変更さ�
 
 ---
 
-## コンテナレジストリ
+## [コンテナレジストリ](#container-registry) {#container-registry}
 
 <strong>コンテナレジストリ</strong>は、コンテナイメージを保存・配布するためのサービスです
 
-### レジストリの役割
+### [レジストリの役割](#registry-role) {#registry-role}
 
-| 機能           | 説明                                             |
+{: .labeled}
+| 機能 | 説明 |
 | -------------- | ------------------------------------------------ |
-| 保存           | イメージをサーバーに保存する                     |
-| 配布           | イメージを pull（ダウンロード）できるようにする  |
-| 公開 / 非公開  | パブリックイメージとプライベートイメージの管理   |
+| 保存 | イメージをサーバーに保存する |
+| 配布 | イメージを pull（ダウンロード）できるようにする |
+| 公開 / 非公開 | パブリックイメージとプライベートイメージの管理 |
 | バージョン管理 | タグやダイジェストによるイメージのバージョン管理 |
 
-### 主なレジストリ
+### [主なレジストリ](#main-registries) {#main-registries}
 
-| レジストリ                | 特徴                                                   |
+{: .labeled}
+| レジストリ | 特徴 |
 | ------------------------- | ------------------------------------------------------ |
-| Docker Hub                | Docker 公式のパブリックレジストリ。最大のイメージ数    |
+| Docker Hub | Docker 公式のパブリックレジストリ。最大のイメージ数 |
 | GitHub Container Registry | GitHub が提供するレジストリ。GitHub リポジトリとの統合 |
-| Amazon ECR                | AWS が提供するプライベートレジストリ                   |
-| Google Artifact Registry  | Google Cloud が提供するレジストリ                      |
+| Amazon ECR | AWS が提供するプライベートレジストリ |
+| Google Artifact Registry | Google Cloud が提供するレジストリ |
 
-### pull と push
+### [pull と push](#pull-and-push) {#pull-and-push}
 
 <strong>pull（イメージの取得）</strong>
 
@@ -415,7 +421,7 @@ docker push myregistry/myapp:1.0
 
 レジストリに既に存在するレイヤはアップロードをスキップします
 
-### OCI Distribution Specification
+### [OCI Distribution Specification](#oci-distribution-spec) {#oci-distribution-spec}
 
 レジストリとの通信プロトコルは、OCI Distribution Specification で標準化されています
 
@@ -423,11 +429,11 @@ docker push myregistry/myapp:1.0
 
 ---
 
-## イメージの識別
+## [イメージの識別](#image-identification) {#image-identification}
 
 コンテナイメージは<strong>タグ</strong>と<strong>ダイジェスト</strong>の2つの方法で識別できます
 
-### タグ
+### [タグ](#tag) {#tag}
 
 タグは人間が読みやすい名前です
 
@@ -441,7 +447,7 @@ nginx             ← タグを省略すると latest と見なされる
 
 同じタグ（例：latest）が異なるイメージを指すことがあるため、本番環境では注意が必要です
 
-### ダイジェスト
+### [ダイジェスト](#digest) {#digest}
 
 ダイジェストはイメージの内容から計算されるハッシュ値です
 
@@ -457,7 +463,7 @@ nginx@sha256:abc123...    ← イメージ名@ダイジェスト
 
 ---
 
-## 次のトピックへ
+## [次のトピックへ](#next-topic) {#next-topic}
 
 このトピックでは、以下のことを学びました
 
@@ -471,65 +477,66 @@ nginx@sha256:abc123...    ← イメージ名@ダイジェスト
 
 しかし、コンテナは独立した環境で動作するため、そのままでは外部と通信できません
 
-次のトピック [04-network](./04-network.md) では、<strong>コンテナのネットワーク</strong>を学びます
+次のトピック [04-network](../04-network/) では、<strong>コンテナのネットワーク</strong>を学びます
 
 コンテナがどうやってホストや他のコンテナと通信するのか、bridge、veth ペア、ポートマッピングの仕組みを理解します
 
 ---
 
-## 用語集
+## [用語集](#glossary) {#glossary}
 
-| 用語                            | 説明                                                                                 |
+{: .labeled}
+| 用語 | 説明 |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| コンテナイメージ                | コンテナの実行に必要なファイルシステムと設定情報をまとめた、読み取り専用のパッケージ |
-| レイヤ                          | イメージを構成する個々の差分。各レイヤは直前の状態からの変更点を含む                 |
-| ベースレイヤ                    | イメージの最下層のレイヤ。通常は OS のファイルシステム                               |
-| ベースイメージ                  | Dockerfile の FROM で指定する、土台となるイメージ                                    |
-| コンテナレイヤ                  | コンテナ起動時にイメージの上に追加される書き込み可能なレイヤ                         |
-| Copy-on-Write（CoW）            | 読み取り専用のデータを変更する際に、コピーを作成してから変更する方式                 |
-| ホワイトアウトファイル          | overlayfs でファイルの削除を表現するための特殊なマーカーファイル                     |
-| overlay filesystem（overlayfs） | 複数のディレクトリを重ね合わせて1つのファイルシステムに見せるカーネル機能            |
-| lowerdir                        | overlayfs の読み取り専用の下位レイヤ                                                 |
-| upperdir                        | overlayfs の書き込み可能な上位レイヤ                                                 |
-| merged                          | overlayfs ですべてのレイヤが統合された結果のディレクトリ                             |
-| Dockerfile                      | コンテナイメージをビルドするための定義ファイル                                       |
-| FROM                            | Dockerfile でベースイメージを指定する命令                                            |
-| RUN                             | Dockerfile でビルド時にコマンドを実行する命令。新しいレイヤを生成する                |
-| COPY                            | Dockerfile でホストのファイルをイメージにコピーする命令                              |
-| CMD                             | Dockerfile でコンテナ起動時のデフォルトコマンドを指定する命令                        |
-| ENTRYPOINT                      | Dockerfile でコンテナ起動時に必ず実行するコマンドを指定する命令                      |
-| ビルドキャッシュ                | 変更のないレイヤを再利用してビルドを高速化する仕組み                                 |
-| コンテナレジストリ              | コンテナイメージを保存・配布するためのサービス                                       |
-| Docker Hub                      | Docker 公式のパブリックコンテナレジストリ                                            |
-| タグ                            | イメージに付ける人間が読みやすい名前（例: nginx:1.27）                               |
-| ダイジェスト                    | イメージの内容から計算されるハッシュ値。不変で一意にイメージを識別する               |
-| pull                            | レジストリからイメージをダウンロードする操作                                         |
-| push                            | ローカルのイメージをレジストリにアップロードする操作                                 |
+| コンテナイメージ | コンテナの実行に必要なファイルシステムと設定情報をまとめた、読み取り専用のパッケージ |
+| レイヤ | イメージを構成する個々の差分。各レイヤは直前の状態からの変更点を含む |
+| ベースレイヤ | イメージの最下層のレイヤ。通常は OS のファイルシステム |
+| ベースイメージ | Dockerfile の FROM で指定する、土台となるイメージ |
+| コンテナレイヤ | コンテナ起動時にイメージの上に追加される書き込み可能なレイヤ |
+| Copy-on-Write（CoW） | 読み取り専用のデータを変更する際に、コピーを作成してから変更する方式 |
+| ホワイトアウトファイル | overlayfs でファイルの削除を表現するための特殊なマーカーファイル |
+| overlay filesystem（overlayfs） | 複数のディレクトリを重ね合わせて1つのファイルシステムに見せるカーネル機能 |
+| lowerdir | overlayfs の読み取り専用の下位レイヤ |
+| upperdir | overlayfs の書き込み可能な上位レイヤ |
+| merged | overlayfs ですべてのレイヤが統合された結果のディレクトリ |
+| Dockerfile | コンテナイメージをビルドするための定義ファイル |
+| FROM | Dockerfile でベースイメージを指定する命令 |
+| RUN | Dockerfile でビルド時にコマンドを実行する命令。新しいレイヤを生成する |
+| COPY | Dockerfile でホストのファイルをイメージにコピーする命令 |
+| CMD | Dockerfile でコンテナ起動時のデフォルトコマンドを指定する命令 |
+| ENTRYPOINT | Dockerfile でコンテナ起動時に必ず実行するコマンドを指定する命令 |
+| ビルドキャッシュ | 変更のないレイヤを再利用してビルドを高速化する仕組み |
+| コンテナレジストリ | コンテナイメージを保存・配布するためのサービス |
+| Docker Hub | Docker 公式のパブリックコンテナレジストリ |
+| タグ | イメージに付ける人間が読みやすい名前（例: nginx:1.27） |
+| ダイジェスト | イメージの内容から計算されるハッシュ値。不変で一意にイメージを識別する |
+| pull | レジストリからイメージをダウンロードする操作 |
+| push | ローカルのイメージをレジストリにアップロードする操作 |
 
 ---
 
-## 参考資料
+## [参考資料](#references) {#references}
 
 このページの内容は、以下のソースに基づいています
 
 <strong>OCI 仕様</strong>
 
-- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md)
+- [OCI Image Specification](https://github.com/opencontainers/image-spec/blob/main/spec.md){:target="\_blank"}
   - コンテナイメージの標準仕様（レイヤ構造、マニフェスト、設定）
-- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md)
+- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md){:target="\_blank"}
   - イメージ配布の標準仕様（レジストリとの通信プロトコル）
 
 <strong>overlay filesystem</strong>
 
-- [overlayfs - Linux kernel documentation](https://docs.kernel.org/filesystems/overlayfs.html)
+- [overlayfs - Linux kernel documentation](https://docs.kernel.org/filesystems/overlayfs.html){:target="\_blank"}
   - overlay filesystem のカーネルドキュメント（lowerdir / upperdir / merged の仕組み）
 
 <strong>Dockerfile</strong>
 
-- [Dockerfile reference](https://docs.docker.com/reference/dockerfile/)
+- [Dockerfile reference](https://docs.docker.com/reference/dockerfile/){:target="\_blank"}
   - Dockerfile の命令リファレンス（FROM、RUN、COPY、CMD 等）
 
 <strong>Docker ストレージ</strong>
 
-- [Docker storage drivers](https://docs.docker.com/engine/storage/drivers/)
+- [Docker storage drivers](https://docs.docker.com/engine/storage/drivers/){:target="\_blank"}
   - Docker のストレージドライバ（overlay2）の仕組み
